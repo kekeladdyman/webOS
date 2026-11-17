@@ -1,0 +1,98 @@
+# Dead Mount Death Play edit — project files
+
+Source for the 38s edit set to "Ain't No Mountain High Enough". Media is not stored here.
+
+## Rebuild
+1. Put the 12 episodes (1080p, English dub on audio track 0) in `eps/ep01.mkv` … `eps/ep12.mkv`
+   (they came from the "Dead Mount Death Play" folder in Google Drive).
+2. Song: the audio of the reference clip, trimmed to 0–36.18s, as `audio/song.wav` (48 kHz stereo);
+   beat data in `audio/song_analysis.json` (librosa `beat_track`, key `beats`).
+3. Dialogue stems: run Demucs (`htdemucs --two-stems vocals`) on the dub windows listed in the notes below
+   into `dlg/sep/htdemucs/raw_*/vocals.wav`.
+4. Fonts in `fonts/`: Anton, PlayfairItalic, CormorantItalic, Cinzel, Oswald (Google Fonts).
+5. `python extract.py` → `python audio_mix.py` → `python render.py final` → mux `out/final_video.mp4` + `out/mix.wav`.
+
+`tl.py` is the timeline (shots, captions, lyric text); `render.py` draws frames; `audio_mix.py` builds the soundtrack.
+
+# DMDP edit — working notes (shot ids = shots/epXX.json index; times mm:ss in episode)
+
+## Song (uploads/b6fe2d68...mp4 -> audio/song.wav)
+- "Ain't No Mountain High Enough", 129.2 BPM, beats in audio/song_analysis.json, lyrics w/ times in audio/song_words.json
+- usable 0.00-35.0s. Song fades 33.3->35.0. 35.1-36.2 is the TikTok outro jingle (full-scale) -> MUST CUT. Song is quiet in file (RMS ~-28dB) -> normalise.
+- intro instrumental 0-5.5; "Listen, baby" 5.52; verse 7.44-15.5 (mountain 9.0 / valley 10.9 / river 12.8 / enough 14.1);
+  "If you need me call me" 15.5-18; "No matter where you are" 18.08; "No matter how far" 19.88; "Don't worry baby" 21.74;
+  "Just call my name" 23.4; "I'll be there in a hurry" 25.2; "You don't have to worry" 27.2; "Oh baby there" 29.04;
+  "Ain't no mountain high enough" 30.28-33.3 (chorus hit); "Ain't no.." 33.3-35 fade.
+
+## Dialogue (English dub = audio track 0), times in seconds in episode
+- OPEN: E02 66.24-69.16 "All I wanted was peace." + 70.54-71.30 "Nothing more."   (alt: E02 35.02-36.96 "I desired only peace.")
+- MID (before chorus ~28.3): E05 1077.78-1079.74 "I'll protect you, no matter what."
+- CLOSE: E05 1411.56-1414.22 "I suppose I can't go dying just yet." ("Well then," at 1409.70-1410.88)
+- spare: E01 682.90-685.10 "It seems this land I've arrived in is peaceful."; E01 424.92-427.68 "Lives are no more than playthings to me.";
+  E12 1177.64-1180.90 "This world is so very, very beautiful."
+- demucs stems: dlg/sep/htdemucs/raw_*/vocals.wav (raw_peace starts @62s ep02, raw_protect @1068 ep05, raw_cantdie @1406 ep05,
+  raw_beautiful @1174 ep12, raw_always @16 ep02, raw_land @676 ep01)
+
+## Shots — EP01 (opening 0:07-1:20 has credits text; ED/OP credits 21:44-22:46 avoid)
+Other-world battle (purple/blue/gold): 52 giant skeleton hand(1:30,3.8s) | 53 blue circles | 61,62 green circle | 66 skull in purple (1:54)
+| 68 Shagrua CU (1:59) | 71 yellow circle | 92 lantern | 100,103,104 blue circles | 115-117 yellow blast | 130 purple sphere (3:04,3.9s)
+| 135 glowing knight | 136 purple lightning | 139 blue circle | 140,144 blue beam | 141,149 blue dragon | 151,154 Shagrua in blue light
+| 176-178 golden fire figure (4:09) | 179,180 skull spider | 181 blue rings | 186-188 blue x-ray skeleton | 195 purple EVIL EYE CU (4:37,4.6s)
+| 199 eye ECU | 220 eye glow (5:37) | 221 magenta skull demon (5:39,3.2s) | 222 skull CU | 224 blue souls (5:49,7s)
+| 202-210 flashback: flag, clouds, child at jail window(209), mansion(210) | 227 skeleton army | 233,234 fire slash | 237 silhouettes in flames (6:21)
+| 254,256,258 skull explosion | 271 yellow explosion | 279 skull speaks "playthings" (7:04) | 292 rainbow skull burst (7:39,6s) | 293 magenta burst (7:45)
+| 295 red/white circles (7:50,4s) | 304-308 Shagrua purple flames | 316 gold pentagram circle (8:14) | 318 gold blast | 320 lightning
+| 321 Shagrua gold slash (8:19,2.5s) | 322,323 rainbow blast | 324 skull blue-white | 326 Shagrua scream CU (8:26) | 327,328 magenta burst
+| 332 sword hits skull | 333 blue dome (8:34) | 335 white explosion (8:36,5s) | 347 gold circles reincarnation (8:50,2.2s) | 351 white light (8:56,6.9s)
+Shinjuku arrival: 359 bloody neck | 361 Polka CU (9:54) | 362 street (9:56,4s) | 364 Cocoon Tower skyscraper (10:05,3.5s) "mountain high"
+| 376 looks at hands (10:50) | 384 Shinjuku stn | 388 little girl smiling (11:18,4.5s) | 389 Polka CU "this land is peaceful" (11:22,4.7s)
+| 391 eye CU | 392 blue backlit back silhouette (11:28,5.3s) | 393 sepia child spirits | 476 Cocoon tower (15:32)
+Misaki: 411 smiling (12:40) | 433,434,437 creepy/glitch laugh (13:37-13:44) | 447 hugs Polka (14:05) | 458 purple red-eyes (14:43,3.6s)
+| 464-466 knife slash blue trail (14:53) | 481,483 knives backlit/glint (15:54-15:58) | 501 blood petals (16:19) | 528 laughing w/ bloody knife (17:09,3.1s)
+| 549,552 magenta CU (18:48,18:59) | 562 white flash red eyes
+Polka/Corpse God: 479 shadowed face one glowing eye (15:48,4.3s) | 506-511 falling in white light | 516 blue child spirits (16:43)
+| 540 eye ECU (18:06,4.8s) | 542 red backlit (18:14) | 543 spirit silhouettes on red (18:19,5s) | 545 purple ghost crowd (18:27)
+| 554 hand out glowing eyes CASTING (19:02,6.2s) | 555 blue-lit hand out side (19:08,7s) | 556 blue rune flash | 559-561 magenta skeleton hand
+| 563 skeleton hand grab | 564 blue circle from bone hand (19:22) | 574 gold-pink reincarnation circle (19:55,4.2s) | 575 Shagrua bloody pink eye (19:59,7s)
+| 585,586,588 hand w/ purple tendrils (20:53-21:01) | 587 purple/red necromancy circle (20:57,4.5s) | 590 sunny Shinjuku skyline (21:05) "a peaceful life"
+| 593 Polka glowing eyes hero CU (21:15,2.2s) | 594 pink skull demon true form (21:17,6.8s) | 597,598 red/pink skull burst (21:30)
+| 660-664 sketch eye opening (22:46) | 667 official EN logo "DEAD MOUNT DEATH PLAY" (22:51,2.5s)
+| 670 overhead blue circles w/ Misaki (23:00) | 672 Polka casting blue circles (23:05,3s) | 674 Polka CU glowing eyes blue circle HERO (23:12,2.5s) | 676 Misaki rising
+
+## Shots — EP02 (OP 3:26-5:01 mostly has credits; sketch-eye->EN logo 4:54-5:01 is clean)
+Monologue storybook (white/sepia, matches OPEN dialogue): 1 child silhouette alone in white vignette (0:03,6s) ** | 2 dark hands reaching (0:09)
+| 3 hooded figure w/ red-eyed spiders (0:12) | 5 hooded skull profile (0:21) | 6 hooded figure on battlefield (0:24) | 9 sepia tunnel (0:34)
+| 10 hooded skull + child (0:38,9.4s) | 16 kids playing w/ hooded figure (1:04) | 17 kids at table w/ hooded figure (1:07,2.5s) = "All I wanted was peace"
+| 18 hooded figure standing w/ kids (1:09) = "Nothing more" | 20 skull mask (1:13) | 22 red X swords (1:24) | 24 red battlefield fire (1:31,4s)
+| 30 skull silhouette on red (1:49) | 32 many red eyes in dark (1:56) | 36 skeleton on throne sepia (2:21,6.3s) | 37 armored legs arrive (2:28)
+| 92 red eye ECU (4:29) | 117 pink magic circle (4:50) | 119-123 sketch eye opens/closes (4:54) | 126 EN logo (4:59,2.5s)
+## Shots — EP12
+11 Polka red eyes dark (1:16) | 37 Polka CU OP (1:54) | 52-54 red burst bgs (2:14) | 61 red eye ECU (2:31) | 86-90 sketch eye | 93 EN logo (3:01,2.5s)
+| 105 Solitaire hand red glow (3:59) | 154-160 blue lightning hooded figure (7:25-7:34) ** | 182 pink skull demon true form (9:10,5.4s) **
+| 183 blue silhouettes w/ spirits on white (9:15,3.8s) | 191 blue chained circle w/ eyes (9:52) | 192 Polka w/ purple circles (9:54,3.6s)
+| 223 red spirit silhouettes (12:13) | 224 kids w/ tall figure (12:17) | 225 blue swirl magic (12:20,7.4s) | 230 big blue circle (12:32)
+| 231,232 purple lightning | 243,244 purple lightning tendrils (13:35) | 245 pink EYE ECU (13:42,3s) ** | 246 blue circle array + lightning (13:45,9.7s) **
+| 248 circle burst (14:02) | 273 dark figure pink eyes (15:53,6s) | 274 hand on blue magic circle (15:59,8.8s) ** | 291 many blue circles w/ Polka (17:18,13.7s) **
+| 292 blue energy sphere burst (17:32,4s) ** | 307 blue circle purple lightning (18:24,4.5s) | 313 Polka face half-skull purple (18:44,9.2s) ***
+| 316 blue circles (19:14) | 317-319 giant spectral hands/arms (19:17-19:31) ** | 322 spectral burst (19:39) | 325 spectral arm night sky (19:43,4.7s)
+| 328 Polka w/ huge blue circles HERO (19:49,4s) *** | 329 pink eye in dark (19:53) | 333 hand grabs balloon (20:04) | 343 Polka (20:31,6.7s)
+
+## DECISIONS (after viewing strips)
+- CLOSE line changed: "I can't go dying" is an old man (not Corpse God); "so very beautiful" is Solitaire (villain). CLOSE = E01 682.90-685.10 "It seems this land I've arrived in is peaceful." (Polka)
+- E05 twins hug visual for MID line: ep05 src 1076-1080 (Polka in b/w hood hugging twins); 1090 = hood profile CU.
+- dark-haired armored man w/ glowing pink eye (E01 #195,#220,#326,#308,#68) = Shagrua the Calamity Crusher (antagonist hero), NOT Corpse God.
+- Output: 1920x1080 @60fps, ~37.3s. Renderer = python (OpenCV+PIL) piping to ffmpeg. Proxies only exist for ep01,02,03,10,11,12 (enough).
+## STORYBOARD (B[i] = beat i from song_analysis.json)
+A cold open 0-5.34: E02#1 child alone (src 3.6+) | E02#16 kids+hooded figure (64.7+) | E02#5 hooded skull reveal (22.0+). Dialogue OPEN from 0.30 (pauses tightened).
+B title 5.34-7.27: footage-in-text "DEAD MOUNT / DEATH PLAY" filled w/ E01#594 pink skull demon (1279.5+), zoom THROUGH letters into full frame.
+C verse 7.27-15.33 (battle): #594 cont. | E01#68 Shagrua sword (120.6) | MOUNTAIN: E01#98 skeleton giant zoom (154.2) | #103 rings (159.6), #136 lightning (195.3)
+  | VALLEY: E01#227 skeleton lord over army (368.4) | #176 gold figure (249.7), #144 beam (208.9) | RIVER: E01#141 blue dragon (203.8)
+  | ENOUGH: #326 Shagrua scream (506.2) -> #321 gold slash (499.5) | #332 sword strike (513.0) -> #335 light pillar white-out (517.5)
+D 15.33-21.8: #335 white | #347 reincarnation circle (530.6) | #361 Polka CU (594) | #364 Cocoon tower (606) | #362 street (596.5)
+  | split-screen two worlds (E01#237 flames 381.3 | E01#590 skyline 1265.6) "no matter how far" | #392 blue backlit silhouette (691.8)
+E 21.8-28.31: #393 sepia kids (694.2) | #411 Misaki smile (760.1) | #528 Misaki laugh knife (1029.5) | #501 Misaki lunge (979.4)
+  | #540 eye ignites (1088.3) | #554 hand tendrils (1145.5) | #555 circle forms (1148.9) + #556 rune flash (1155.9)
+E8 28.31-30.12 (music muffled, MID line @28.22): E05 twins hug (1076.3) | E12#313 half-skull face (1126)
+F chorus 30.12-33.37: E12#328 hero circles (1189.5) | E12#292 sphere burst (1054.5) | E12#318 spectral hands (1169.5) | E01#594/E12#182 skull demon
+  | E01#292 rainbow burst (459.2) | E12#248 burst (842.4)/E01#598 (1290.5) | E01#674 Polka hero CU (1392.7)
+G outro 33.37-37.3: E01#590 skyline (CLOSE line @33.6) | E01#389 Polka closes eyes (683.5) | end title on black.
