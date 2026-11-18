@@ -307,3 +307,7 @@ clip them and tween them, you can do that to the characters too".
   every "What?", vocal stutter on "recognize", C# drone under Lisa, sub drops. No Mixkit library sounds at all.
 - Run: TLMOD=tl8 python prep2.py; python prep8.py; python audio8.py; python render8.py final; mux (see round8.sh). Debug: TS=.. OUT=.. python dbg8.py draft
 - Deliverable: rounds/DMDP_experiment_v21.mp4 (47.4 s, -14.1 LUFS, -1.0 dBFS peak, no black frames).
+- v22 (user: "you don't need to make 20 versions but I did like the first 10 seconds"): kept 0-10.4 s untouched, carried its language through the rest:
+  big words all in the FACE brushed-metal style (UNMASKED, ARMAGEDDON, DEMONS, NECROMANCER, MASK); SYNTHETIC stencil -> ドン on the drop; tears / dragon /
+  ghosts / Lemmings / spell beam / red-eye slit / finale rebuilt as inked panels on screentone fields (+ ゴゴゴ); mirror = split panel like face-to-face;
+  outro + tag lyrics in the intro's narration boxes; tag inked (glowing eyes kept). Deliverable rounds/DMDP_SYNTHETIC_edit_v22.mp4 (-14.1 LUFS, no black frames).

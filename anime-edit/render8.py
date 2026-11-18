@@ -17,6 +17,7 @@ YEL = (40, 240, 220)                     # MARATHON chartreuse (BGR)
 WHITE = (248, 248, 248); INKC = (14, 12, 14); PAPER = (236, 238, 240)
 RED_T = (40, 30, 215); VIO_T = (170, 50, 140); BLUE_T = (200, 110, 30); TEAL_T = (150, 150, 30)
 A8 = {}
+BEAT8 = 60.0 / 123.05
 DW = R7.DW
 def P(x, y=None): return x * K if y is None else (x * K, y * K)
 def PTS(pts): return [(x * K, y * K) for x, y in pts]
@@ -169,6 +170,10 @@ def setup8():
     R7.X7["b1"] = FT.flat(g("AN EDIT BY   SHIGAMI", "texgyreheroscn-bold.otf", 40, 12), (32, 28, 30))
     A8["cardlab"] = FT.flat(g("EP.01  ·  16:43  ·  THE DEAD", "SpaceMono.ttf", 17, 3), YEL)
     A8["cardidx"] = FT.flat(g("N° 07  //  WHAT THEY LEFT", "SpaceMono.ttf", 17, 3), YEL)
+    metal = lambda w, sz: FT.metal3d(g(w, "texgyreheroscn-bolditalic.otf", sz, -4), top=(245, 248, 250), bot=(110, 112, 118), depth=0.06, angle=40,
+                                     ext=(60, 60, 66), ext_far=(18, 18, 20), spec=0.75, noise=6, glow=((255, 255, 255), 30 * k, 0.18))
+    A8["unmasked"] = metal("UNMASKED", 300); A8["demons"] = metal("DEMONS", 340); A8["armageddon"] = metal("ARMAGEDDON", 400)
+    A8["mask"] = metal("MASK", 600); A8["necro"] = metal("NECROMANCER", 260)
 
 
 def word_row(canvas, items, t, x0, y, size, gapk=0.30, op=1.0):
@@ -386,20 +391,14 @@ def v_fire(t):                                    # 12.35-13.28: ARMAGEDDON burn
     return X.strips(canvas, n_, 20, offs, gap=max(2, int(10 * K)), gapcol=(6, 6, 8), bg=np.zeros_like(canvas))
 
 
-def v_tears(t):                                   # 13.28-14.26: the dead children on a floating MARATHON card; TEARS fall off its edge
-    dt = t - 13.28; canvas = np.empty((H, W, 3), np.uint8); canvas[:] = (8, 8, 10)
-    img = src("V7", t, "raw"); cw, ch = int(P(1120)), int(P(630)); card = cv2.resize(img, (cw, ch), interpolation=cv2.INTER_AREA)
-    pmc = card; ac = np.full((ch, cw), 255, np.uint8); e = out_expo(dt / 0.35)
-    q = quad3d(cw, ch, W * 0.5, H * 0.47, dz=lerp(-300, 0, e) * K, Rl=Rmat(lerp(-28, -14, e) + 4 * dt, lerp(10, 6, e), lerp(-4, -2, e)), screen=True)
-    draw_plane(canvas, pmc, ac, q)
-    cv2.polylines(canvas, [np.int32(q)], True, (200, 200, 200), max(1, int(2 * K)), cv2.LINE_AA)
-    qq = (q - q.mean(0)) * 1.06 + q.mean(0); cv2.polylines(canvas, [np.int32(qq)], True, (110, 110, 110), max(1, int(1 * K)), cv2.LINE_AA)
-    X.place(canvas, *A8["cardlab"], q[0][0] + A8["cardlab"][1].shape[1] / 2, q[0][1] - P(30), 1.0, 0, clamp(dt / 0.2))
-    X.place(canvas, *A8["cardidx"], q[2][0] - A8["cardidx"][1].shape[1] / 2, q[2][1] + P(34), 1.0, 0, clamp(dt / 0.2))
-    if t >= 13.74:                                # the letters fall from the card's lower edge
+def v_tears(t):                                   # 13.28-14.26: the dead children inked on a cold page; TEARS fall out of the panel
+    dt = t - 13.28; canvas = tone_field((60, 30, 14), (150, 90, 40), 8.0, (0.0, 0.7), (0, 1)); u = out_back(clamp(dt / 0.22), 1.4)
+    p1 = X.xform_pts(PTS([(300, 80), (1640, 56), (1676, 800), (262, 836)]), s=lerp(1.2, 1.0, u), rot=lerp(4, 1, u))
+    X.panel(canvas, fit_into(src("V7", t, "manga_b"), p1, 1.15, 0.5, 0.56), p1, border=max(3, int(9 * K)), bcol=WHITE)
+    if t >= 13.74:
         x = W * 0.5 - P(330)
         for i, L in enumerate(A8["tears"]):
-            d = max(0.0, t - 13.74 - i * 0.06); y = H * 0.80 + 0.5 * 2600 * K * d * d; f = clamp(d / 0.05) * clamp(1 - (y - H * 0.8) / (H * 0.4))
+            d = max(0.0, t - 13.74 - i * 0.06); y = H * 0.80 + 0.5 * 1500 * K * d * d; f = clamp(d / 0.05) * clamp(1 - (y - H * 0.80) / (H * 0.32))
             if d > 0: X.place(canvas, *L, x, y, 1.0, (i - 2) * 6 * d * 4, f)
             x += L[1].shape[1] * 0.78
     return canvas
@@ -475,19 +474,19 @@ def drop_page(t):
 def d_past(t):
     if t < 19.01:
         canvas = drop_page(t)
-        if t < 16.42:                             # SYNTHETIC stamped over the first hit
-            dt = t - 16.13; e = out_expo(dt / 0.10); pm, a = A8["synth"]
-            X.place(canvas, pm, a, W * 0.5, H * 0.50, lerp(1.25, 1.0, e), 0, clamp((16.42 - t) / 0.06))
-            pm, a = A8["synth_mono"]; X.place(canvas, pm, a, W * 0.5, H * 0.50 + A8["synth"][1].shape[0] * 0.55, 1.0, 0, clamp((16.42 - t) / 0.06))
+        jp_pop(canvas, A8["don"][0], t, 16.13, P(430), P(520), -8, life=0.62, s0=1.6)          # ドン on the drop
+        jp_pop(canvas, A8["don"][1], t, 16.25, P(860), P(640), 6, life=0.50, s0=1.6)
         if t < 16.17: canvas = X.impact_frames(canvas, t, 16.13, 2, 60)
         return canvas
-    # 19.01: the page is torn apart - the dragon
-    dt = t - 19.01; dr = src("D5", t, "duo_blue"); fl = X.focus_lines(H, W, W * 0.62, H * 0.42, X.on2(t), n=110, r_in=0.30); X.paint(dr, (250, 246, 236), fl * 0.5)
+    # 19.01: the page is torn apart - the dragon, inked, in a big slanted panel
+    dt = t - 19.01; dr = tone_field((60, 20, 10), (200, 120, 40), 9.0, (0.0, 0.85), (0.3, 1))
+    pts = X.xform_pts(PTS([(90, 70), (1830, 40), (1860, 1010), (60, 1040)]), s=lerp(1.12, 1.0, out_expo(dt / 0.2)), rot=lerp(-3, -1, clamp(dt / 0.9)))
+    cont = src("D5", t, "manga_b"); fl = X.focus_lines(H, W, W * 0.62, H * 0.42, X.on2(t), n=110, r_in=0.30); X.paint(cont, INKC, fl * 0.6)
+    X.panel(dr, fit_into(cont, pts, 1.0), pts, border=max(3, int(9 * K)), bcol=WHITE)
     if dt < 0.30:
         k = out_cubic(dt / 0.30); pg = drop_page(19.0)
         offs = [((-1) ** i) * H * 1.3 * k * (0.7 + 0.3 * (i % 2)) for i in range(6)]
-        torn = X.strips(pg, 6, 70, offs, gap=0, bg=dr)
-        return torn
+        return X.strips(pg, 6, 70, offs, gap=0, bg=dr)
     return dr
 
 
@@ -523,19 +522,26 @@ def r2_frame(t):                                 # his eye: a sticker on a cold 
     return bg
 
 
-def ghosts(t):
-    canvas = src("D9", t, "duo_vio"); canvas = cv2.addWeighted(canvas, 0.8, tone_field((40, 10, 120), (120, 40, 200), 8.0, (0.0, 0.8), (0, 1)), 0.3, 0)
-    return canvas
+def ghosts(t):                                    # the ghost crowd as a violet two-panel page
+    c = tone_field((40, 8, 30), (130, 40, 110), 8.0, (0.0, 0.8), (0, 1))
+    p1 = PTS([(50, 60), (1250, 40), (1200, 1030), (40, 1040)])
+    X.panel(c, fit_into(src("D9", t, "manga_v"), p1, 1.0, 0.45, 0.5), p1, border=max(3, int(9 * K)), bcol=WHITE)
+    if t >= 22.50:
+        u2 = out_back(clamp((t - 22.50) / 0.16), 1.6); p2 = X.xform_pts(PTS([(1290, 120), (1880, 100), (1870, 980), (1270, 1000)]), s=lerp(1.3, 1.0, u2))
+        X.panel(c, fit_into(src("D9", t, "duo_vio"), p2, 2.4, 0.72, 0.45), p2, border=max(3, int(9 * K)), bcol=WHITE)
+    return c
 
 
 def d_cafe(t):
     if t < 24.53:                                 # Lemmings, bandaged face: red duotone with stuttering red echoes
-        dt = t - 23.81; zz = lerp(1.18, 1.0, out_expo(dt / 0.25)); img, m = srcm("W1", t, "duo_red", zm=zz)
-        bg = cv2.addWeighted(img, 0.85, tone_field((8, 6, 10), (40, 30, 200), 9.0, (0.0, 0.7), (0, 1)), 0.35, 0)
-        fl = X.focus_lines(H, W, W * 0.5, H * 0.42, X.on2(t), n=110, r_in=0.30); X.paint(bg, (40, 30, 225), fl * 0.55)
-        half = int(dt / (60.0 / 123 / 2)); jx = P(26) * (1 if half % 2 else -1) * (1 if dt < 0.5 else 0)
-        stick_full(bg, img, m, px=0, dx=jx, echoes=((-90, 0, (40, 30, 225), 0.45, 1.0), (90, 0, (40, 30, 225), 0.30, 1.0)))
-        return R6.glitch_hits(bg, t, 23.81)
+        dt = t - 23.81; c = tone_field((10, 8, 40), (40, 30, 200), 9.0, (0.0, 0.9), (0.5, 1))
+        half = int(dt / (BEAT8 / 2)); sg = (1 if half % 2 else -1) * (1 if dt < 0.5 else 0)
+        pts = X.xform_pts(PTS([(240, 80), (1680, 50), (1720, 1000), (200, 1030)]), s=lerp(1.2, 1.0, out_expo(dt / 0.2)), dx=P(22) * sg, rot=1.2 * sg)
+        cont = fit_into(src("W1", t, "duo_red", zm=1.05), pts, 1.0); fl = X.focus_lines(H, W, *np.asarray(pts).mean(0), X.on2(t), n=110, r_in=0.30)
+        X.paint(cont, (40, 30, 225), fl * 0.55); X.panel(c, cont, pts, border=max(3, int(9 * K)), bcol=WHITE)
+        for i, (tt, x, y, r) in enumerate(((23.81, 1760, 230, -8), (24.05, 1800, 520, 6), (24.29, 1760, 810, -4))):
+            jp_pop(c, A8["go"], t, tt, P(x), P(y), r, life=24.53 - tt, s0=0.75)
+        return R6.glitch_hits(c, t, 23.81)
     if 24.74 <= t < 25.09: return R6.shatter(l2(t), l3(t), (t - 24.74) / 0.35, (0.50, 0.45))
     if t < 24.74: return l2(t)
     if t < 25.25: return l3(t)
@@ -579,10 +585,12 @@ def vs_split(t):                                  # Polka | Lemmings, VS
 
 def d_spell(t):
     if t < 28.36:                                 # the spell: beam with speed lines + zoom echo
-        dt = t - 27.65; c = src("S1", t, "raw"); sl = X.speed_lines(H, W, X.on2(t, 24), angle=-35, n=60); X.paint(c, (255, 240, 230), sl * 0.45)
-        e1 = src("S1", t - 0.06, "raw", zm=1.06); c = cv2.addWeighted(c, 0.78, e1, 0.32, 0); return c
+        dt = t - 27.65; c = tone_field((40, 14, 6), (170, 100, 30), 9.0, (0.0, 0.8), (-0.4, 1)); u = out_back(clamp(dt / 0.2), 1.4)
+        pts = X.xform_pts(PTS([(70, 140), (1850, 60), (1860, 940), (60, 1020)]), s=lerp(1.2, 1.0, u), rot=lerp(-5, -2, u))
+        cont = src("S1", t, "manga_b"); sl = X.speed_lines(H, W, X.on2(t, 24), angle=-35, n=60); X.paint(cont, INKC, sl * 0.5)
+        X.panel(c, fit_into(cont, pts, 1.0), pts, border=max(3, int(9 * K)), bcol=WHITE); return c
     if t < 28.62:                                 # mirrored circles
-        c = src("S2", t, "raw"); c[:, W // 2:] = cv2.flip(c[:, :W // 2], 1)[:, :W - W // 2]; return c
+        c = src("S2", t, "manga_b"); c[:, W // 2:] = cv2.flip(c[:, :W // 2], 1)[:, :W - W // 2]; return c
     if t < 28.92:                                 # KATON-style black card
         dt = t - 28.62; c = np.empty((H, W, 3), np.uint8); c[:] = (4, 4, 6); pm, a = A8["necro"]
         X.place(c, pm, a, W * 0.5, H * 0.5, (P(1380) / a.shape[1]) * (1 + 0.05 * dt), 0, clamp(dt / 0.03)); return c
@@ -596,14 +604,17 @@ def d_spell(t):
         return canvas
     if t < 30.55:                                 # the skull's red eye in a widening slit
         dt = t - 29.81; c = np.empty((H, W, 3), np.uint8); c[:] = (6, 6, 8); hgt = lerp(P(200), H * 0.75, out_cubic(dt / 0.74))
-        y0, y1 = H / 2 - hgt / 2, H / 2 + hgt / 2; X.panel(c, src("S5", t, "raw"), [(0, y0), (W, y0), (W, y1), (0, y1)], border=max(2, int(4 * K)), bcol=(40, 30, 225))
+        y0, y1 = H / 2 - hgt / 2, H / 2 + hgt / 2; X.panel(c, src("S5", t, "manga_rg"), [(0, y0), (W, y0), (W, y1), (0, y1)], border=max(2, int(4 * K)), bcol=WHITE)
+        for i, (tt, x, y, r) in enumerate(((29.81, 1640, 200, -8), (30.05, 1760, 470, 6), (30.30, 1640, 760, -4))):
+            jp_pop(c, A8["go"], t, tt, P(x), P(y), r, life=30.55 - tt, s0=0.8)
         return c
     return finale8(t)
 
 
 def finale8(t):                                   # 30.55-31.46: his real face, echoes, the character card
     s = SH["F6"]; dt = t - s["t0"]
-    bg = src("F6", t, "raw"); bg = cv2.convertScaleAbs(bg, alpha=0.55)
+    bg = tone_field((50, 18, 8), (170, 100, 34), 9.0, (0.0, 0.85), (0, 1))
+    fl = X.focus_lines(H, W, W * 0.5, H * 0.42, X.on2(t), n=100, r_in=0.36); X.paint(bg, INKC, fl * 0.5)
     sc = lerp(0.42, 0.46, clamp(dt / 0.9)); a_ = smooth((dt - 0.04) / 0.25)
     if a_ > 0.01:
         shape = cv2.cvtColor(R4.skull_layer("SKa", SH["SKa"]["t0"] + 0.05, sc, W * 0.5, H * 0.20), cv2.COLOR_BGR2GRAY)
@@ -611,7 +622,8 @@ def finale8(t):                                   # 30.55-31.46: his real face, 
         bg = np.clip(bg.astype(np.float32) * ((1.0 - a_) + a_ * (0.34 + 0.9 * shape))[..., None], 0, 255).astype(np.uint8)
         bg = cv2.add(bg, cv2.convertScaleAbs(R4.glow_only(R4.skull_layer("SKb", SH["SKb"]["t1"] - 0.01, sc, W * 0.5, H * 0.20, pal=None), 1.2), alpha=a_))
     img, m = srcm("F6", t, "raw", zm=1.04)
-    stick_full(bg, img, m, px=0, echoes=((-70, 0, (40, 30, 225), 0.55 * clamp(1 - dt / 0.6), 1.02), (70, 0, WHITE, 0.30 * clamp(1 - dt / 0.6), 1.04)))
+    stick_full(bg, img, m, px=8, col=WHITE, px2=4, col2=INKC, shadow=(12, 14, 18, 0.6),
+               echoes=((-70, 0, (40, 30, 225), 0.55 * clamp(1 - dt / 0.6), 1.02), (70, 0, WHITE, 0.30 * clamp(1 - dt / 0.6), 1.04)))
     if t < 30.59: bg = X.impact_frames(bg, t, 30.55, 2, 60)
     e = out_expo((dt - 0.10) / 0.16); y = H * 0.74
     if dt >= 0.10:
@@ -633,22 +645,32 @@ def scene_drop(t, n):
 
 
 # ======================================================================== OUTRO 31.46 - 40.55
-def o_mirror(t):
-    c = R7.mirror(t, ZERO_ACC)                    # the reflection is only a drawing of him
-    right = X.manga(c[:, W // 2:], tone_col=VIO_T, keep_glow=0.6); c[:, W // 2:] = cv2.addWeighted(c[:, W // 2:], 0.25, right, 0.75, 0)
+def o_mirror(t):                                  # the mirror as a split panel: Polka | his reflection, inked, turning into the skull
+    dt = t - 31.46; u = out_back(clamp(dt / 0.26), 1.3)
+    L = tone_field((150, 120, 20), (60, 30, 6), 8.0, (0.1, 0.9), (1, 0.3))
+    img, m = srcm("O1a", t, "raw"); stick_full(L, img, m, px=6, col=WHITE, shadow=(10, 12, 12, 0.6), dx=-P(330), s=0.95)
+    k = smooth((t - 31.90) / 0.9); rp = cv2.flip(src("O1a", t, "manga_v"), 1); rs = src("O1b", t, "manga_v", zm=1.6)
+    R = cv2.addWeighted(rp, 1 - k, rs, k, 0)
+    sx = (1 - u) * W * 0.6; xa, xb = W * 0.55, W * 0.45
+    pl = [(-sx, 0), (xa - sx, 0), (xb - sx, H), (-sx, H)]; pr = [(xa + sx, 0), (W + sx, 0), (W + sx, H), (xb + sx, H)]
+    c = np.empty((H, W, 3), np.uint8); c[:] = (8, 8, 10)
+    X.panel(c, X.warp_to(L, 1.0, 0, -sx, 0, border=cv2.BORDER_REPLICATE), pl, border=0)
+    X.panel(c, X.warp_to(R, 1.0, 0, sx, 0, border=cv2.BORDER_REPLICATE), pr, border=0)
+    cv2.line(c, (int(xa), 0), (int(xb), H), WHITE, max(2, int(12 * K)), cv2.LINE_AA)
+    if t >= 33.04:
+        f = clamp((t - 33.04) / 0.14); y = H * 0.80
+        X.place(c, *R7.X7["mir_l"], W * 0.25, y, 1.0, 0, f); X.place(c, *R7.X7["mir_r"], W * 0.75, y, 1.0, 0, f * 0.8)
     return c
 
 
-def o_card(t):                                    # I don't even recognize myself - the hands on a tilted card
-    dt = t - 33.46; c = np.empty((H, W, 3), np.uint8); c[:] = (8, 8, 10)
-    cw, ch = int(P(1150)), int(P(646)); card = cv2.resize(src("O2", t, "raw"), (cw, ch), interpolation=cv2.INTER_AREA)
-    e = out_expo(dt / 0.5); q = quad3d(cw, ch, W * 0.5, H * 0.45, dz=lerp(-200, 0, e) * K, Rl=Rmat(lerp(14, 6, e) - 2 * dt, lerp(-8, -4, e), lerp(3, 1.5, e)), screen=True)
-    draw_plane(c, card, np.full((ch, cw), 255, np.uint8), q); qq = (q - q.mean(0)) * 1.05 + q.mean(0)
-    cv2.polylines(c, [np.int32(qq)], True, (200, 200, 200), max(1, int(2 * K)), cv2.LINE_AA)
+def o_card(t):                                    # I don't even recognize myself - the hands inked in a tilted panel, lyric in a narration box
+    dt = t - 33.46; c = tone_field((22, 18, 20), (58, 50, 56), 8.0, (0.0, 0.5), (0, 1)); u = out_back(clamp(dt / 0.22), 1.4)
+    pts = X.xform_pts(PTS([(250, 40), (1670, 24), (1700, 590), (220, 616)]), s=lerp(1.2, 1.0, u), rot=lerp(-4, -1.5, u))
+    X.panel(c, fit_into(src("O2", t, "manga"), pts, 1.0, 0.5, 0.52), pts, border=max(3, int(9 * K)), bcol=WHITE)
     if t >= 33.90:
         f = clamp((35.39 - t) / 0.12); z = A8["zz"]
-        word_row(c, [(z["I"], 33.90), (z["DON’T"], 33.96), (z["EVEN"], 34.12)], t, P(330), P(705), 78, op=f)
-        word_row(c, [(A8["recog"], 34.46)], t, P(330), P(810), 150, op=f); word_row(c, [(A8["myself"], 34.88)], t, P(330), P(950), 150, op=f)
+        caption(c, [([(z["I"], 33.90), (z["DON\u2019T"], 33.96), (z["EVEN"], 34.12)], 78, 0), ([(A8["recog"], 34.46)], 150, 105),
+                    ([(A8["myself"], 34.88)], 150, 128)], t, P(300), P(690), 33.90, f)
     return R7.cut_glitch(c, t, (34.46,), 0.08)
 
 
@@ -665,8 +687,8 @@ def o_vanish(t):                                  # I feel like I've disappeared
             D, cx, cy = A8["dis"]; D.draw(bg, clamp((t - 36.10) / 1.05), cx, cy, 1.0, drift=(P(620), -P(300)))
     if t >= 35.88:
         f = clamp((37.27 - t) / 0.12); z = A8["zz"]
-        word_row(bg, [(z["I"], 35.88), (z["FEEL"], 36.08), (z["LIKE"], 36.18), (z["I’VE"], 36.36)], t, P(110), P(820), 70, op=f)
-        word_row(bg, [(A8["disap"], 36.52)], t, P(110), P(935), 120, op=f)
+        caption(bg, [([(z["I"], 35.88), (z["FEEL"], 36.08), (z["LIKE"], 36.18), (z["I’VE"], 36.36)], 78, 0), ([(A8["disap"], 36.52)], 120, 112)],
+                t, P(110), P(830), 35.88, f)
     return bg
 
 
@@ -686,7 +708,8 @@ def o_nothing(t):                                 # I got nothing - his face shr
     dt = t - 39.22; c = np.empty((H, W, 3), np.uint8); c[:] = (8, 8, 10); u = smooth((t - 39.60) / 0.9)
     s = lerp(1.0, 0.34, u); pts = X.xform_pts([(0, 0), (W, 0), (W, H), (0, H)], s=s, dy=-P(40) * u)
     X.panel(c, fit_into(src("O5", t, "manga"), pts, 1.0), pts, border=max(2, int(6 * K * u)), bcol=WHITE)
-    if t >= 40.06: X.place(c, *A8["nothing"], W * 0.5, H * 0.80, 1.0, 0, clamp((t - 40.06) / 0.15) * clamp((40.70 - t) / 0.15))
+    if t >= 40.06:
+        wn = row_w([(A8["nothing"], 0)], 110); caption(c, [([(A8["nothing"], 40.06)], 110, 0)], t, W * 0.5 - wn / 2, H * 0.82, 40.06, clamp((40.70 - t) / 0.15))
     return cv2.convertScaleAbs(c, alpha=1.0 - 0.85 * smooth((t - 40.30) / 0.40))
 
 
@@ -700,7 +723,7 @@ def scene_outro(t, n):
 
 # ======================================================================== TAG: Lisa's line in the silence
 def scene_tag8(t, n):
-    full = R7.scene_tag(t, n, ZERO_ACC); c = np.empty_like(full); c[:] = (6, 6, 8)
+    full = X.manga(R7.scene_tag(t, n, ZERO_ACC), tone_col=VIO_T, keep_glow=1.0); c = tone_field((22, 18, 20), (58, 50, 56), 8.0, (0.0, 0.5), (0, 1))
     y0, y1 = H * 0.08, H * 0.64; pts = [(P(70), y0), (W - P(70), y0), (W - P(70), y1), (P(70), y1)]
     X.panel(c, fit_into(full, pts, 1.0, 0.5, 0.44), pts, border=max(2, int(3 * K)), bcol=(190, 190, 190))
     f = clamp((t - 40.62) / 0.3) * clamp((45.15 - t) / 0.12)
@@ -708,14 +731,12 @@ def scene_tag8(t, n):
     return c
 
 
-def tag_captions8(canvas, t):
-    ws = [x[0] for x in DW["tag"]]; ws[0] = 40.84; L = R7.X7["tag"]; yA, yB = P(800), P(900); x0 = P(96)
+def tag_captions8(canvas, t):                     # Lisa's line in narration boxes, like the opening
+    ws = [x[0] for x in DW["tag"]]; ws[0] = 40.84; L = R7.X7["tag"]; x0 = P(110); y0 = P(805)
     rows = lambda Ls, ts: [(l, tt) for l, tt in zip(Ls, ts)]
-    if t < 41.92: word_row(canvas, rows(L[0], ws[0:3]), t, x0, yA, 78, op=clamp((41.92 - t) / 0.1))
-    elif t < 43.90:
-        f = clamp((43.90 - t) / 0.1); word_row(canvas, rows(L[1], ws[3:7]), t, x0, yA, 78, op=f); word_row(canvas, rows(L[2], ws[7:9]), t, x0, yB, 78, op=f)
-    elif t < 45.15:
-        f = clamp((45.15 - t) / 0.1); word_row(canvas, rows(L[3], ws[9:12]), t, x0, yA, 78, op=f); word_row(canvas, rows(L[4], ws[12:15]), t, x0, yB, 78, op=f)
+    if t < 41.92: caption(canvas, [(rows(L[0], ws[0:3]), 78, 0)], t, x0, y0, 40.84, clamp((41.92 - t) / 0.1))
+    elif t < 43.90: caption(canvas, [(rows(L[1], ws[3:7]), 78, 0), (rows(L[2], ws[7:9]), 78, 100)], t, x0, y0, 41.92, clamp((43.90 - t) / 0.1))
+    elif t < 45.15: caption(canvas, [(rows(L[3], ws[9:12]), 78, 0), (rows(L[4], ws[12:15]), 78, 100)], t, x0, y0, 43.90, clamp((45.15 - t) / 0.1))
 
 
 # ======================================================================== hits, camera, post, dispatch
