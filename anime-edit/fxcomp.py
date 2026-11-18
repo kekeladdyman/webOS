@@ -352,3 +352,21 @@ def impact_frames(img, t, t0, n=2, fps=60, cols=((250, 250, 250), (14, 10, 12)))
     if not (0 <= t - t0 < n / fps): return img
     g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY); thr = float(np.percentile(g[::8, ::8], 60)); m = g > thr
     out = np.empty_like(img); a, b = (cols if k % 2 == 0 else cols[::-1]); out[:] = b; out[m] = a; return out
+
+
+# ---------------------------------------------------------------- v23: tone-mapped inks (dark shots become readable line art)
+def tonemap(img, target=0.52, gmin=0.38, gmax=1.5):
+    f = img.astype(np.float32); g = f.mean(2); lo, hi = np.percentile(g[::4, ::4], (1.0, 99.6)); x = np.clip((f - lo) / max(10.0, hi - lo), 0, 1)
+    med = float(np.clip(np.median(x.mean(2)[::4, ::4]), 0.02, 0.98)); gam = float(np.clip(math.log(target) / math.log(med), gmin, gmax))
+    return (np.power(x, gam) * 255).astype(np.uint8)
+
+
+def ink2(img, accent=None, glow=0.0, solid=0.22, tone_hi=0.66, paper=(236, 238, 240), inkc=(14, 12, 14), line_k=7, pitch=None, target=0.52):
+    """the page look: tone-map, then clean ink + screentone. accent = second ink colour for the screentone; glow keeps saturated light in colour."""
+    tm = tonemap(img, target); out = manga(tm, paper=paper, inkc=inkc, solid=solid, tone_hi=tone_hi, tone_col=accent, line_k=line_k, pitch=pitch)
+    if glow > 0:
+        k_ = img.shape[1] / 1920.0; hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        kk = np.clip((hsv[..., 1].astype(np.float32) - 95) / 50, 0, 1) * np.clip((hsv[..., 2].astype(np.float32) - 125) / 60, 0, 1)
+        kk = (cv2.GaussianBlur(kk, (0, 0), 2 * k_ + 0.5) * glow)[..., None]
+        out = np.clip(out * (1 - kk) + np.clip(img.astype(np.float32) * 1.3, 0, 255) * kk, 0, 255).astype(np.uint8)
+    return out

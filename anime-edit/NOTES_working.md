@@ -311,3 +311,25 @@ clip them and tween them, you can do that to the characters too".
   big words all in the FACE brushed-metal style (UNMASKED, ARMAGEDDON, DEMONS, NECROMANCER, MASK); SYNTHETIC stencil -> ドン on the drop; tears / dragon /
   ghosts / Lemmings / spell beam / red-eye slit / finale rebuilt as inked panels on screentone fields (+ ゴゴゴ); mirror = split panel like face-to-face;
   outro + tag lyrics in the intro's narration boxes; tag inked (glowing eyes kept). Deliverable rounds/DMDP_SYNTHETIC_edit_v22.mp4 (-14.1 LUFS, no black frames).
+
+# ===================== V9 / v23 (user: "improve this and get rid of that cheap effects whatever that was") =====================
+- Diagnosis from frames of v22: fake brushed-metal 3D text, grey/red echo copies behind cut-outs, pop-art colour halftone fields, the ink filter on
+  dark FX shots (unreadable), glitch / invert flashes / shatter / strips / dot dissolve, heavy vignette. All removed.
+- LYRICS RE-CHECKED (faster-whisper large-v3 on stem + mix, plus vocal-stem energy onsets): earlier on-screen words were partly wrong.
+  Verse is "face to face with ... / still wrestle with all these feelings, I'm asking / ... with tears / ... it's these demons, I'm asking - what?"
+  (so UNMASKED = "I'm asking", ARMAGEDDON unverified -> both dropped). Outro: "...straight in the mirror ... I don't even recognize myself /
+  I feel like I disappeared / I put on a mask ... I got a mouth full of -" (so NOTHING dropped). Old WHAT? ad-lib times were off; only the one
+  on the drop (15.99) is used. Word times in tl9.LYR (large-v3; the medium-model times were ~0.3 s late).
+- Look: X.ink2 = tone-map then ink + screentone, pure black and white; "inkg" keeps saturated light (magic, eyes, fire) in colour. Works on dark shots.
+- Engine (render9.py): Pn panels on Page objects in page coordinates, camera keyframes (whipk) that land on the beat, hit punches, living panels,
+  breakouts, flood/fade swaps, wipe-to-paper. Real motion blur: mb_plan() picks 5-14 sub-frames per moving frame + a directional smear per sample.
+  Pages: V verse 10.43-16.13 (6 panels + eye slit, whole-page pull-out, iris dive), D1 past life, rebirth (legacy circle/eye match, inked, splash border),
+  DX crowd, L cafe, S spell (+ struck-out name plate / THE CORPSE GOD), O outro (mirror pair, erased figure), tag panel with skull at "inside".
+  First 10 s kept (intro page, logo, skull, FACE, face-to-face) with new type and no glitch.
+- Type: captions = Comic Neue Bold Italic in white manga boxes (cap_make, word-timed); big words = Anton sheared, flat, hard ink shadow (imp);
+  katakana SFX kept. fonts3/ fetched through the Google Fonts CSS API (github raw is blocked by the proxy).
+- audio9.py: 13 events only - soft sub notes under the intro panels, reverse swells cut from the song into 9 big cuts, C# drone + sub drop in the
+  tag, one C# 808 on the end card. No noise hits / riser / roll / stutter / delay throws.
+- Memory: 4 workers at 1080p reached the 15 GB limit (one OOM kill at chunk 39). Pool now uses maxtasksperchild=5; rechunk9.py re-renders single
+  1-second chunks; parts are concatenated from out/final9_parts.txt.
+- Deliverable: rounds/DMDP_SYNTHETIC_edit_v23.mp4 (47.4 s, -14.1 LUFS, -1.0 dBFS, no black frames).
