@@ -184,6 +184,10 @@ fx(873, 16.45, -23, align="start")                               # the circle la
 whine(21.34, 22.05)                                              # the Evil Eye rings before it opens
 for _t in (1.51, 3.42, 4.88):                                    # v8: a damaged-splice tick on each subliminal frame
     fx(1021, _t, -27); fx(2299, _t, -27)
+rfx(1492, 30.58, -24, dur=0.30)                                   # v11: sucked into his pupil before the drop
+import tl4 as _tl                                                   # v14: digital tear on each stutter of the Lemmings reveal
+for _b in [b for b in _tl.B if 25.10 <= b < 26.47] + [(a + b) / 2 for a, b in zip(_tl.B, _tl.B[1:]) if 25.10 <= (a + b) / 2 < 26.47]:
+    fx(1031 if int(_b * 100) % 2 else 1021, _b, -29)
 # -- outro
 fx(358, 33.9, -36, align="start", maxd=3.3, fi=0.8, fo=0.8)
 # official title card: glitches in over the skyline, static, lands on white

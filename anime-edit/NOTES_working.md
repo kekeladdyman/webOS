@@ -261,3 +261,9 @@ BRIEF (all user requests): song uninterrupted; dialogue like MARATHON; reference
 - v8: tl4.FLASH subliminal frames X1 1.51 skull, X2 3.42 Shagrua eye red, X3 4.88 Polka Evil Eye (render6.scene_film); splice ticks; NOTHING MORE x 0.475pw.
 - v9: render6.ring_text(): incantation ring (W6["ring"] Newsreader 520) on R1 reincarnation circle 15.80-16.95 at 0.64*r, dark band, follows circle_match onto the eye.
 - v10: white-out 15.40-16.20; stare-down zoom 2.15; HIGH sc 0.62; render6.post() wraps R2.post: halation on colour scenes (thr 218, (16,40,105)).
+- v11: pupil dive into the drop: render6.scene_pocket iris_through at EYE (0.79,0.54) from CHORUS-0.25 for 0.31s, S1 shown from CHORUS+0.07 (colour, after impact flash);
+  iris_end() keeps AIN'T slam; rfx suck-in before drop.
+- v12: (dolly zoom on R4 tried + reverted: matte too weak, smear looked like ghosting). render6.groove(): beat bumps in GROOVE windows (verse, cafe, chorus).
+  Drum detection unreliable (vocal fills) -> use beat grid.
+- v13: RIVER / WIDE behind the dragon beam via luminance mask (lit>190/200) — rembg fails on dragon/dome/true form.
+- v14: render6.glitch_hits() half-beat stutters on E6 + L1 (applied after words so the tag tears); L1 z=(1.0,1.32); LEMMINGS tag pinned at (0.205,0.80); tear SFX.

@@ -128,12 +128,19 @@ def words_body(canvas, t, acc):
         text_plane(canvas, pm, a, Rmat(0, -64, 0), W * 0.5, H * 1.10 + (1 - e) * H * 0.3, 0, 1.25, clamp(dt / 0.05))
         if t >= 11.50:
             pm, a = W6["low"]; comp_pm(canvas, pm, a, clamp((t - 11.50) / 0.1), int(W * 0.955 - a.shape[1]), int(H * 0.90))
-    if 12.59 <= t < 13.26:                           # too big for the frame: cut off by its bottom edge
-        dt = t - 12.59; pm, a = W6["river"]; put(canvas, pm, a, W * 0.5 - dt * 120 * K, H * 0.955, opacity=clamp(dt / 0.08))
+    if 12.59 <= t < 13.26:                           # v13: standing in the dragon's beam - the light burns through the letters
+        dt = t - 12.59; pm, a = W6["river"]; under = canvas.copy()
+        put(canvas, pm, a, W * 0.5 - dt * 120 * K, H * 0.80, opacity=clamp(dt / 0.08))
+        lit = cv2.cvtColor(under, cv2.COLOR_BGR2GRAY).astype(np.float32)
+        lm = np.clip((lit - 190.0) / 45.0, 0, 1); lm = cv2.GaussianBlur(lm, (0, 0), 3 * K + 0.5)
+        canvas[:] = (canvas.astype(np.float32) * (1 - lm[..., None]) + under.astype(np.float32) * lm[..., None]).astype(np.uint8)
     if 13.12 <= t < 13.44:                           # letters pulled across the whole width
-        ls, (tw, th) = W6["L_wide"]; sp = out_cubic((t - 13.12) / 0.3) * W * 0.15
+        ls, (tw, th) = W6["L_wide"]; sp = out_cubic((t - 13.12) / 0.3) * W * 0.15; under = canvas.copy()
         pm, a = word_layer(W6["L_wide"], CREAM, [((i - 1.5) * sp + tw * 0.75, 0.0, 1.0) for i in range(len(ls))], wmul=2.5)
         pm, a = with_shadow(pm, a, 12 * K, 0.95, 4 * K); put(canvas, pm, a, W * 0.5, H * 0.52)
+        lit = cv2.cvtColor(under, cv2.COLOR_BGR2GRAY).astype(np.float32)
+        lm = cv2.GaussianBlur(np.clip((lit - 200.0) / 40.0, 0, 1), (0, 0), 3 * K + 0.5)
+        canvas[:] = (canvas.astype(np.float32) * (1 - lm[..., None]) + under.astype(np.float32) * lm[..., None]).astype(np.uint8)
     if 14.08 <= t < 14.86: slam(canvas, *T["enough_v"], Rmat(-26, 4, 0), W * 0.52, H * 0.60, t, 14.08, lroll=-4)
     if 17.72 <= t < 18.60:                           # climbing the side of the tower
         u = (t - 17.72) / 0.88; pm, a = W6["shin_v"]
@@ -153,7 +160,7 @@ def words_body(canvas, t, acc):
         pm, a = W6["name"]; put(canvas, pm, a, W * 0.5, H * 0.5, rot=-3.5, opacity=clamp((t - 24.56) / 0.12))
     if 25.60 <= t < 26.40:
         dt = t - 25.60; e = out_expo(dt / 0.12); pm, a = W6["lemmings"]
-        text_plane(canvas, pm, a, Rmat(18, 0, 0), W * 0.25, H * 0.78, -40, lerp(1.6, 1.0, e), clamp(dt / 0.04), lroll=-7)
+        put(canvas, pm, a, W * 0.205, H * 0.80, scale=lerp(1.6, 1.0, e), rot=-7, opacity=clamp(dt / 0.04))
     if 26.50 <= t < 27.38:                           # thrown through the fight
         dt = t - 26.50; e = out_expo(dt / 0.16); pm, a = T["hurry"]; xoff = (1 - e) * W * 0.7 - dt * 40 * K
         if e < 0.97:
@@ -185,6 +192,37 @@ def ring_text(canvas, cx, cy, r, ang0, a_):
     comp_matte(roi, np.full_like(roi, (226, 240, 250)), m)
 
 
+def glitch_hits(img, t, t0, strength=1.0):
+    """v14: the hunter arrives in stutters - on every half beat the frame jumps, tears into RGB bands and slices sideways."""
+    hb = [b for b in tl.B if t0 - 0.01 <= b <= t] + [(a + b) / 2 for a, b in zip(tl.B, tl.B[1:]) if t0 - 0.01 <= (a + b) / 2 <= t]
+    if not hb: return img
+    dt = t - max(hb)
+    if dt > 0.09: return img
+    k = (1 - dt / 0.09) * strength; seed = int(max(hb) * 1000)
+    rng = np.random.default_rng(seed); out = img.copy()
+    sh = int(18 * K * k)
+    b, g, r = cv2.split(out)
+    out = cv2.merge([np.roll(b, -sh, 1), g, np.roll(r, sh, 1)])
+    for _ in range(int(3 + 5 * k)):                                    # slice bands
+        y0 = int(rng.integers(0, H - 10)); hgt = int(rng.integers(int(6 * K) + 2, int(60 * K) + 4)); off = int(rng.normal(0, 70 * K * k))
+        out[y0:y0 + hgt] = np.roll(out[y0:y0 + hgt], off, 1)
+    z = 1.0 + 0.06 * k
+    return zoom_at(out, z, W / 2 + rng.normal(0, 30 * K * k), H / 2, W / 2, H / 2, reflect=True)
+
+
+def vertigo(t, acc):
+    """v12: dolly-zoom on the Shinjuku street - Polka stays the same size, the city stretches away behind him."""
+    s = SH["R4"]; u = clamp((t - s["t0"]) / (s["t1"] - s["t0"])); e = smooth(u)
+    img = render_shot(s, t, acc); px, py = 0.535 * W, 0.62 * H                      # Polka, in the frame
+    rings = [zoom_at(img, 1.0 + (0.34 - 0.10 * k) * e, px, py, reflect=True) for k in range(3)]
+    canvas = rings[0]
+    for k, r_ in enumerate(rings[1:], 1):                                             # radial smear: the street rushes out
+        canvas = cv2.addWeighted(canvas, 1.0 - 0.33 / k, r_, 0.33 / k, 0)
+    cm = circ_mask(px, py - 0.14 * H, 0.17 * H, feather=40 * K)                     # Polka himself stays sharp
+    comp_matte(canvas, zoom_at(img, 1.0 + 0.34 * e, px, py, reflect=True), cm)
+    return canvas
+
+
 def scene_body(t, n, acc):
     if 21.22 <= t < 21.44:                           # the burning battlefield takes the whole frame, then his eye
         A_ = R4.diptych(min(t, 21.335), SH["Q2L"], SH["Q2R"], (0.56, 0.52), (0.50, 0.50), 20.43)
@@ -195,6 +233,8 @@ def scene_body(t, n, acc):
     elif SH["E4"]["t0"] <= t < SH["E4"]["t1"]: canvas = shot_e4(t, acc)
     else: canvas = _orig_body(t, n, acc)
     words_body(canvas, t, acc)
+    if SH["L1"]["t0"] <= t < SH["L1"]["t1"]: canvas = glitch_hits(canvas, t, SH["L1"]["t0"])
+    if SH["E6"]["t0"] <= t < SH["E6"]["t1"]: canvas = glitch_hits(canvas, t, SH["E6"]["t0"], strength=0.6)
     if 15.80 <= t < 16.95:                           # v9: the incantation rides the reincarnation circle, then shrinks with it onto his eye
         ca = R4.reinc_circle(min(t, 16.95)); ang = -0.9 * (t - 15.80) - 0.4
         if t < 16.45: x, y, rr = ca[0], ca[1], ca[2] * 0.64; a_ = clamp((t - 15.80) / 0.3)
@@ -231,6 +271,7 @@ def finale(t, acc):
 
 
 def scene_spell(t, n, acc):
+    if t < IRIS0 + IRIS_D: return iris_end(t, n, acc)
     if t >= SH["F6"]["t0"]: return finale(t, acc)
     if t >= SH["SKa"]["t0"]: return R4.split_face(t, acc)
     tf = trans_frame(t, acc, TRS); canvas = tf if tf is not None else _orig_spell(t, n, acc)
@@ -259,6 +300,9 @@ def frame_lines(canvas, a_, m=0.035):
     cv2.addWeighted(ov, 1.0, canvas, 0.0, 0, dst=canvas)
 
 
+EYE = (0.79, 0.54); IRIS0 = tl.CHORUS - 0.25; IRIS_D = 0.31
+
+
 def scene_pocket(t, n):
     """v4: the vow, full frame. Misaki in Lemmings' grip, the words stacked in the black of his cloak;
     then Polka's eyes, NO MATTER WHAT in red under them; the camera falls into the drop."""
@@ -273,7 +317,8 @@ def scene_pocket(t, n):
             y += 112 * K
     else:
         g0 = tl.CHORUS - 0.50; grow = in_expo((t - g0) / 0.50) if t > g0 else 0.0
-        img = render_shot(s2, t); canvas = zoom_at(img, 1.0 + hb + 0.9 * grow, W * 0.5, H * 0.60, reflect=True)
+        img = render_shot(s2, t); ex, ey = lerp(EYE[0] * W, W / 2, grow), lerp(EYE[1] * H, H / 2, grow)
+        canvas = zoom_at(img, 1.0 + hb + 0.9 * grow, EYE[0] * W, EYE[1] * H, ex, ey, reflect=True)
         ws = T["d_nmw"]; ov = 20 * K; x = W * 0.5 - (sum(a.shape[1] for pm, a in ws) - 2 * ov) / 2; sg = 1 + 0.6 * grow; yl = H * 0.875 + grow * H * 0.2
         for (pm, a), off in zip(ws, (1.10, 1.18, 1.44)):
             if t >= MID + off:
@@ -281,6 +326,8 @@ def scene_pocket(t, n):
                 put(canvas, pm, a, cxw, yl, scale=lerp(1.3, 1.0, e2) * sg, opacity=clamp(u / 0.04))
             x += a.shape[1] - ov
     frame_lines(canvas, 0.75 * clamp((t - s1["t0"]) / 0.3) * (1 - clamp((t - (tl.CHORUS - 0.35)) / 0.25)))
+    if t >= IRIS0:                                   # v11: dive into his pupil; the spell opens out of it on the drop
+        return iris_through(canvas, render_shot(SH["S1"], tl.CHORUS + 0.07 + max(0.0, t - tl.CHORUS)), ex, ey, (t - IRIS0) / IRIS_D, ring=(255, 150, 255))
     return canvas
 
 
@@ -317,11 +364,37 @@ def post(img, t, acc, n, *args, **kw):
 
 R2.post = post
 R2.scene_pocket = scene_pocket
+
+
+def iris_end(t, n, acc):
+    """the last frames of the pupil dive, after the drop: the burst finishes opening, AIN'T slams in."""
+    canvas = scene_pocket(t, n)
+    slam(canvas, *T["c_aint"], Rmat(28, -5, 0), W * 0.38, H * 0.52, t, tl.CHORUS, lroll=-4)
+    return canvas
 R4.scene_body = scene_body; R4.scene_spell = scene_spell
 
 
+GROOVE = [(8.22, 15.33), (25.54, 28.55), (30.58, 32.44)]
+
+
+def groove(canvas, t):
+    """v12: the camera rides the beat - alternating vertical / sideways bumps with a small rotation kick."""
+    if not any(a <= t < b for a, b in GROOVE): return canvas
+    dx = dy = rot = 0.0
+    for i, b in enumerate(tl.B):
+        dt = t - b
+        if 0 <= dt < 0.28:
+            e = math.exp(-dt / 0.065) * math.sin(min(dt / 0.05, 1.0) * math.pi / 2)
+            if i % 2 == 0: dy += 11 * K * e
+            else: dx += (9 if i % 4 == 1 else -9) * K * e
+            rot += (0.55 if i % 4 < 2 else -0.55) * e
+    if abs(dx) + abs(dy) + abs(rot) < 0.05: return canvas
+    M = cv2.getRotationMatrix2D((W / 2, H / 2), rot, 1.0 + (abs(dx) + abs(dy)) / W * 2.2); M[0, 2] += dx; M[1, 2] += dy
+    return cv2.warpAffine(canvas, M, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT_101)
+
+
 def frame_at(n):
-    canvas = R4.frame_at(n); t = n / FPS
+    canvas = groove(R4.frame_at(n), n / FPS); t = n / FPS
     if CLOSE - 0.15 <= t < 36.05:                    # the closing line, MARATHON-style: big thin serif, lower left, the second line on the bar edge
         f2 = clamp((36.05 - t) / 0.3); bar = tl.letterbox(t) * H
         k = clamp((t - (CLOSE - 0.15)) / 0.3) * f2 * 0.78

@@ -73,7 +73,7 @@ S("Q3T", 24.15, 25.10, 1, 279.4, z=(1.0, 1.0), grade="battle", ink="wb", mode="d
 S("Q3B", 24.15, 25.10, 4, 1301.6, z=(1.0, 1.0), grade="night", ink="wb", mode="dip")                      # the monster who hunts him now
 S("E6", 25.10, 25.54, 4, 1318.3, z=(1.04, 1.14), grade="night", punch=0.8, ink="red", ink_pct=50)
 # ================= IV. THE CAFE — the Lemmings fight, in ink =================
-S("L1", 25.54, 26.47, 4, 1321.6, z=(1.04, 1.20), grade="night", punch=1.0, ink="red", ink_pct=50)
+S("L1", 25.54, 26.47, 4, 1321.6, z=(1.0, 1.32), grade="night", punch=1.0, ink="red", ink_pct=50)
 S("L2", 26.47, 26.91, 5, 91.62, speed=[(0, 0.55), (0.55, 0.85), (1, 2.3)], z=(1.10, 1.02), grade="bar", punch=0.9, ink="wb")
 S("L3", 26.91, 27.38, 5, 64.82, speed=[(0, 0.55), (0.55, 0.85), (1, 2.3)], z=(1.03, 1.12), grade="bar", punch=0.9, ink="red", ink_pct=50)
 S("L4", 27.38, 27.84, 5, 324.72, z=(1.03, 1.10), grade="bar", punch=0.8)                    # Misaki stays in colour: she is alive
