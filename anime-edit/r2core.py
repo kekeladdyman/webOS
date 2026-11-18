@@ -342,15 +342,25 @@ _clahe = cv2.createCLAHE(clipLimit=2.6, tileGridSize=(4, 4))
 
 
 def ink(img, pal="wb", pct=58, glow=1.0, lines=True):
-    """two-tone ink look (like the show's logo art). bright -> fg, dark -> bg; line art kept; saturated light (eyes, magic) keeps its colour."""
+    """two-tone ink look (like the show's logo art). bright -> fg, dark -> bg; line art kept; saturated light (eyes, magic) keeps its colour.
+    v1: shading noise is flattened first and speckles below a size are removed, so the shapes read as clean ink."""
     fg, bg = INK_PAL[pal]; k_ = img.shape[1] / 1920.0
     g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    cl = cv2.bilateralFilter(_clahe.apply(g), 7, 40, 5)
+    cl = cv2.medianBlur(_clahe.apply(cv2.bilateralFilter(g, 9, 30, max(2.0, 7 * k_))), 5 if k_ > 0.7 else 3)
     thr = float(cv2.threshold(cl[::4, ::4], 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[0]) if pct == "otsu" else float(np.percentile(cl[::6, ::6], pct))
-    m = np.clip((cl.astype(np.float32) - thr) / (9.0 * max(0.6, k_)) + 0.5, 0, 1)
+    mb = ((cl.astype(np.float32) - thr) > 0).astype(np.uint8) * 255
+    ks = max(3, int(round(5 * k_)) | 1); kk = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (ks, ks))
+    mb = cv2.morphologyEx(cv2.morphologyEx(mb, cv2.MORPH_OPEN, kk), cv2.MORPH_CLOSE, kk)
+    amin = 140 * k_ * k_
+    for inv in (True, False):                           # drop tiny islands of either tone
+        src = 255 - mb if inv else mb
+        n, lab, st, _ = cv2.connectedComponentsWithStats(src, 8)
+        small = np.where(st[:, cv2.CC_STAT_AREA] < amin)[0]; small = small[small > 0]
+        if len(small): mb[np.isin(lab, small)] = 255 if inv else 0
+    m = cv2.GaussianBlur(mb, (0, 0), max(0.6, 1.1 * k_)).astype(np.float32) / 255.0
     if lines:                                           # dark outlines inside lit areas survive as ink lines
         dl = cv2.subtract(cv2.GaussianBlur(g, (0, 0), max(1.2, 3.0 * k_)), g).astype(np.float32)
-        m *= 1.0 - np.clip((dl - 9.0) / 8.0, 0, 1)
+        m *= 1.0 - np.clip((dl - 12.0) / 8.0, 0, 1)
     out = np.asarray(fg, np.float32) * m[..., None] + np.asarray(bg, np.float32) * (1 - m[..., None])
     if glow > 0:
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)

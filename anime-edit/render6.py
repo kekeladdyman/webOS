@@ -23,12 +23,13 @@ def setup():
     hv = lambda s_, sz, col, ex: layer(tmask(s_, HV[0], sz * k, tracking=-3 * k, wght=HV[1]), fill=col, extrude=(max(3, int(round(7 * k))), 1.0, 1.0, ex))
     rot = lambda L: (cv2.rotate(L[0], cv2.ROTATE_90_COUNTERCLOCKWISE), cv2.rotate(L[1], cv2.ROTATE_90_COUNTERCLOCKWISE))
     W6["mount"] = layer(tmask("MOUNTAIN", HV[0], 330 * k, tracking=-3 * k, wght=HV[1]), fill=(12, 6, 10))
-    W6["high_v"] = rot(R5.serif("HIGH", 170, WHITE, SD)); W6["shin_v"] = rot(R5.vline("SHINJUKU", 150))
+    W6["high_v"] = rot(R5.vline("HIGH", 190)); W6["shin_v"] = rot(R5.vline("SHINJUKU", 150))
     W6["L_wide"] = letters("WIDE", SD[0], 240 * k, tracking=-2 * k, wght=(520, 72)); W6["L_far"] = letters("FAR", SD[0], 300 * k, tracking=-2 * k, wght=(520, 72))
     W6["valley"] = hv("VALLEY", 300, YEL, (20, 40, 40)); W6["low"] = R5.serif("LOW", 64, YEL, SD)
-    W6["river"] = R5.serif("RIVER", 430, YEL, R5.SERIF, vcrop=True); W6["where"] = hv("WHERE", 300, CREAM, (30, 26, 34))
+    W6["river"] = layer(tmask("RIVER", SD[0], 470 * k, tracking=-4 * k, wght=(460, 72)), fill=CREAM, glow=((255, 200, 120), 18 * k, 0.45), shadow=(14 * k, 0.9, 0, 6 * k))
+    W6["close"] = [R5.serif(w, 92, YEL, ("Newsreader.ttf", (420, 72))) for w in ("IT", "SEEMS", "THIS", "LAND", "I\u2019VE", "ARRIVED", "IN", "IS")]; W6["where"] = hv("WHERE", 300, CREAM, (30, 26, 34))
     W6["name"] = R5.serif("NAME", 96, YEL, SD, tracking=230)
-    W6["misaki"] = R5.vline("MISAKI", 230); W6["lemmings"] = R5.vline("LEMMINGS", 120)
+    W6["misaki"] = R5.vline("MISAKI", 230); W6["lemmings"] = R5.vline("LEMMINGS", 175)
     empty = (np.zeros((2, 2, 3), np.uint8), np.zeros((2, 2), np.uint8))
     R4.X["past"] = (R5.serif("PAST LIFE", 44, WHITE, SD), empty); R4.X["now"] = (R5.serif("THIS LIFE", 44, WHITE, SD), empty)
     yy, xx = np.mgrid[0:H, 0:W].astype(np.float32); W6["xx"] = xx; W6["yy"] = yy; W6["ramp"] = (H - yy) / H
@@ -103,10 +104,10 @@ def shot_i2(t, acc):
     """Shagrua: black type on the red ground, the white figure in front of it; a second word climbs the frame edge."""
     s = SH["I2"]; img, m = render_shot(s, t, acc, want_matte=True); canvas = ink(img, "red", 50)
     dt = t - s["t0"]; e = out_expo(dt / 0.14); pm, a = W6["mount"]
-    put(canvas, pm, a, W * 0.5 - dt * 40 * K, H * 0.40, scale=lerp(1.5, 1.0, e) * (W * 0.94 / a.shape[1]), rot=-5, opacity=clamp(dt / 0.04))
+    put(canvas, pm, a, W * 0.305 - dt * 30 * K, H * 0.44, scale=lerp(1.5, 1.0, e) * (W * 0.47 / a.shape[1]), rot=-6, opacity=clamp(dt / 0.04))   # v2: in the cave, the sword crosses it
     if m is not None: comp_matte(canvas, ink(img, "wb", 58), m)
     if t >= 9.58:
-        u = (t - 9.58) / 0.5; pm, a = W6["high_v"]; put(canvas, pm, a, W * 0.045, H * (0.80 - 0.42 * out_cubic(u)), opacity=clamp(u * 6))
+        u = (t - 9.58) / 0.5; pm, a = W6["high_v"]; put(canvas, pm, a, W * 0.06, H * (0.78 - 0.30 * out_cubic(u)), opacity=clamp(u * 6))
     return canvas
 
 
@@ -150,7 +151,7 @@ def words_body(canvas, t, acc):
         pm, a = W6["name"]; put(canvas, pm, a, W * 0.5, H * 0.5, rot=-3.5, opacity=clamp((t - 24.56) / 0.12))
     if 25.60 <= t < 26.40:
         dt = t - 25.60; e = out_expo(dt / 0.12); pm, a = W6["lemmings"]
-        text_plane(canvas, pm, a, Rmat(18, 0, 0), W * 0.22, H * 0.80, -40, lerp(1.6, 1.0, e), clamp(dt / 0.04), lroll=-7)
+        text_plane(canvas, pm, a, Rmat(18, 0, 0), W * 0.25, H * 0.78, -40, lerp(1.6, 1.0, e), clamp(dt / 0.04), lroll=-7)
     if 26.50 <= t < 27.38:                           # thrown through the fight
         dt = t - 26.50; e = out_expo(dt / 0.16); pm, a = T["hurry"]; xoff = (1 - e) * W * 0.7 - dt * 40 * K
         if e < 0.97:
@@ -195,6 +196,7 @@ def finale(t, acc):
         cx = W * 0.5 + sg * W * (0.288 + 0.10 * (1 - e)); cy = H * 0.40 - sg * W * 0.288 * 0.052
         put(canvas, pm, a, cx, cy, scale=sc_, rot=-3, opacity=clamp(dt / 0.03) * clamp((33.60 - t) / 0.22))
     if m is not None: comp_matte(canvas, fg, m)
+    if t > 33.46: canvas = cv2.convertScaleAbs(canvas, alpha=clamp((33.60 - t) / 0.14))      # v2: dip to black before he speaks
     return canvas
 
 
@@ -217,18 +219,60 @@ def scene_spell(t, n, acc):
     return canvas
 
 
+def frame_lines(canvas, a_, m=0.035):
+    """thin inset border with corner ticks (the MARATHON frame), drawn over a full-bleed shot."""
+    if a_ <= 0.01: return
+    col = tuple(int(c * a_) for c in CREAM); lw = max(1, int(round(1.6 * K))); x0, y0 = int(W * m), int(H * m * 16 / 9); x1, y1 = W - x0, H - y0
+    ov = canvas.copy(); cv2.rectangle(ov, (x0, y0), (x1, y1), col, lw, cv2.LINE_AA); tk = int(24 * K); g = int(10 * K)
+    for (x, y, sx, sy) in ((x0, y0, -1, -1), (x1, y0, 1, -1), (x1, y1, 1, 1), (x0, y1, -1, 1)):
+        cv2.line(ov, (x + sx * g, y), (x + sx * (g + tk), y), col, lw, cv2.LINE_AA); cv2.line(ov, (x, y + sy * g), (x, y + sy * (g + tk)), col, lw, cv2.LINE_AA)
+    cv2.addWeighted(ov, 1.0, canvas, 0.0, 0, dst=canvas)
+
+
+def scene_pocket(t, n):
+    """v4: the vow, full frame. Misaki in Lemmings' grip, the words stacked in the black of his cloak;
+    then Polka's eyes, NO MATTER WHAT in red under them; the camera falls into the drop."""
+    s1, s2 = SH["P1"], SH["P2"]; MID = tl.DLG_MID_T
+    hb = sum(0.020 * math.exp(-(t - b) / 0.10) for b in (28.70, 28.98, 29.60, 29.88) if t >= b)
+    if t < s2["t0"]:
+        img = render_shot(s1, t); canvas = zoom_at(img, 1.0 + hb + 0.05 * (t - s1["t0"]), W * 0.40, H * 0.40, reflect=True)
+        y = H * 0.635; x = W * 0.665
+        for (pm, a), off in zip(T["d_prot"], (0.0, 0.50, 0.78)):
+            if t >= MID + off:
+                u = clamp((t - MID - off) / 0.18); put(canvas, pm, a, x + a.shape[1] / 2 + (1 - out_cubic(u)) * 18 * K, y, opacity=u)
+            y += 112 * K
+    else:
+        g0 = tl.CHORUS - 0.50; grow = in_expo((t - g0) / 0.50) if t > g0 else 0.0
+        img = render_shot(s2, t); canvas = zoom_at(img, 1.0 + hb + 0.9 * grow, W * 0.5, H * 0.60, reflect=True)
+        ws = T["d_nmw"]; ov = 20 * K; x = W * 0.5 - (sum(a.shape[1] for pm, a in ws) - 2 * ov) / 2; sg = 1 + 0.6 * grow; yl = H * 0.875 + grow * H * 0.2
+        for (pm, a), off in zip(ws, (1.10, 1.18, 1.44)):
+            if t >= MID + off:
+                u = t - MID - off; e2 = out_expo(u / 0.12); cxw = W * 0.5 + (x + a.shape[1] / 2 - W * 0.5) * sg
+                put(canvas, pm, a, cxw, yl, scale=lerp(1.3, 1.0, e2) * sg, opacity=clamp(u / 0.04))
+            x += a.shape[1] - ov
+    frame_lines(canvas, 0.75 * clamp((t - s1["t0"]) / 0.3) * (1 - clamp((t - (tl.CHORUS - 0.35)) / 0.25)))
+    return canvas
+
+
+R2.scene_pocket = scene_pocket
 R4.scene_body = scene_body; R4.scene_spell = scene_spell
 
 
 def frame_at(n):
     canvas = R4.frame_at(n); t = n / FPS
-    if CLOSE <= t < 36.15:                           # the closing line, one word at a time, in the lower bar
-        offs = (0.0, 0.12, 0.40, 0.64, 0.90, 1.12, 1.36, 1.58); f2 = clamp((36.15 - t) / 0.3); ov = 38 * K
-        ws = T["d_close"]; x = W / 2 - (sum(a.shape[1] for pm, a in ws) - (len(ws) - 1) * ov) / 2; cy = H * (1 - 0.128 / 2)
-        for (pm, a), off in zip(ws, offs):
-            if t >= CLOSE + off:
-                u = clamp((t - CLOSE - off) / 0.16); put(canvas, pm, a, x + a.shape[1] / 2, cy + (1 - out_cubic(u)) * 6 * K, opacity=u * f2)
-            x += a.shape[1] - ov
+    if CLOSE - 0.15 <= t < 36.05:                    # the closing line, MARATHON-style: big thin serif, lower left, the second line on the bar edge
+        f2 = clamp((36.05 - t) / 0.3); bar = tl.letterbox(t) * H
+        k = clamp((t - (CLOSE - 0.15)) / 0.3) * f2 * 0.78
+        g = np.clip(1.0 - np.hypot(W6["xx"] / (W * 0.70), (H - W6["yy"]) / (H * 0.62)), 0, 1)
+        canvas = (canvas.astype(np.float32) * (1 - k * g)[..., None]).astype(np.uint8)
+        offs = (0.0, 0.12, 0.40, 0.64, 0.90, 1.12, 1.36, 1.58); ov = 40 * K; ws = W6["close"]
+        for li, (rng, y) in enumerate((((0, 4), H - bar - 92 * K), ((4, 8), H - bar - 4 * K))):
+            x = W * 0.045
+            for idx in range(*rng):
+                pm, a = ws[idx]
+                if t >= CLOSE + offs[idx]:
+                    u = clamp((t - CLOSE - offs[idx]) / 0.16); put(canvas, pm, a, x + a.shape[1] / 2, y + (1 - out_cubic(u)) * 8 * K, opacity=u * f2)
+                x += a.shape[1] - ov
     return canvas
 
 

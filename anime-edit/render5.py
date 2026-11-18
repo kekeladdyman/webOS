@@ -47,7 +47,7 @@ def setup():
     cv2.setNumThreads(1); R2.A = R2.Assets(); A = R2.A; k = K
     A.names = [np.zeros((8, 8), np.uint8)] * 4                                   # no handwriting on the photos
     T["ink"] = {w: tmask(w, SERIF_F[0], sz * k, wght=SERIF_F[1], vcrop=False, tracking=-1 * k)
-                for w, sz in (("ALL", 84), ("I", 84), ("WANTED", 84), ("WAS", 72), ("PEACE.", 130), ("NOTHING", 72), ("MORE.", 72))}
+                for w, sz in (("ALL", 104), ("I", 104), ("WANTED", 104), ("WAS", 86), ("PEACE.", 160), ("NOTHING", 88), ("MORE.", 88))}
     T["stack"] = {w: serif(w, 200, YEL, SERIF_D) for w in ("MOUNTAIN", "HIGH", "VALLEY", "LOW", "RIVER")}
     T["L_wide"] = letters("WIDE", SERIF_D[0], 200 * k, tracking=-2 * k, wght=SERIF_D[1])
     T["L_far"] = letters("FAR", SERIF_D[0], 230 * k, tracking=-2 * k, wght=SERIF_D[1])
@@ -61,7 +61,7 @@ def setup():
     T["d_prot"] = [serif(w, 104, CREAM, SERIF_D) for w in ("I’LL", "PROTECT", "YOU,")]
     T["d_nmw"] = [layer(tmask(w, DIDONE[0], 132 * k, wght=DIDONE[1], vcrop=False), fill=VRED, shadow=(9 * k, 0.6, 0, 4 * k)) for w in ("NO", "MATTER", "WHAT.")]
     T["d_close"] = [serif(w, 58, YEL, SERIF_D) for w in ("IT", "SEEMS", "THIS", "LAND", "I’VE", "ARRIVED", "IN", "IS")]
-    T["peaceful"] = layer(tmask("PEACEFUL.", SERIF_D[0], 200 * k, tracking=-2 * k, wght=SERIF_D[1]), fill=DARK, glow=(CREAM, 10 * k, 0.55))
+    T["peaceful"] = layer(tmask("PEACEFUL.", SERIF_D[0], 250 * k, tracking=-2 * k, wght=(430, 72)), fill=(64, 34, 22), glow=((255, 250, 245), 14 * k, 0.65))
     yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
     T["corner"] = np.clip(1.0 - np.hypot(xx / W / 0.62, (H - yy) / H / 0.80), 0, 1) ** 1.1
 
@@ -255,12 +255,12 @@ def scene_pocket(t, n):
     g0 = tl.CHORUS - 0.55; grow = in_expo((t - g0) / 0.55) if t > g0 else 0.0
     R = Rmat(lerp(9, -5, smooth((t - 28.55) / 1.95)) * (1 - grow), (3 + 1.5 * slow(t, 3)) * (1 - grow), -1.5 * (1 - grow))
     hb = sum(0.022 * math.exp(-(t - b) / 0.10) for b in (28.70, 28.98, 29.60, 29.88) if t >= b)
-    cw = int(lerp(W * 0.50, W * 1.03, grow)) // 2 * 2; ch = cw * 9 // 16 // 2 * 2
-    e = out_expo((t - 28.55) / 0.22); cx, cy = W * 0.5, lerp(H * 0.42, H * 0.5, grow)
+    cw = int(lerp(W * 0.60, W * 1.03, grow)) // 2 * 2; ch = cw * 9 // 16 // 2 * 2
+    e = out_expo((t - 28.55) / 0.22); cx, cy = W * 0.5, lerp(H * 0.40, H * 0.5, grow)
     img = render_shot(cur, t, size=(cw, ch))
     canvas = backdrop(img, 0.13 * (1 - grow)); plus_markers(canvas, R, t, 7.0, 0.3 * (1 - grow))
     card(canvas, img, R, cx, cy, (1 + hb) * lerp(1.12, 1.0, e), "P", A.card_labels["P"], A.card_idx["P"], (1 - grow) * e)
-    yb = lerp(cy + ch / 2 + 86 * K, H * 0.70, grow)
+    yb = lerp(cy + ch / 2 + 62 * K, H * 0.70, grow)
     words = list(zip(T["d_prot"], (0.0, 0.50, 0.78))); ov = 25 * K
     x = W * 0.5 - (sum(a.shape[1] for (pm, a), _ in words) - 2 * ov) / 2
     for (pm, a), off in words:                       # thin serif caps, word by word
@@ -303,21 +303,35 @@ def scene_chorus(t, n, acc):
 
 
 # ---------------------------------------------------------------- outro: the closing line, frame-edge serif
+SKYLINE = [(0, 150), (57, 150), (57, 215), (110, 215), (110, 135), (150, 135), (150, 165), (160, 165), (160, 135), (198, 135), (198, 210),
+           (232, 210), (232, 178), (300, 178), (300, 165), (325, 165), (325, 208), (385, 208), (385, 145), (430, 145), (430, 118), (515, 118),
+           (515, 150), (522, 150), (522, 195), (535, 150), (548, 124), (555, 118), (565, 125), (578, 140), (590, 155), (590, 140), (640, 140), (640, 360), (0, 360)]
+_bld = {}
+
+
+def buildings_mask(t):
+    """the skyline of the closing Shinjuku shot (static camera), traced by hand, warped with the same slow zoom as the frame."""
+    if "m" not in _bld:
+        m = np.zeros((H, W), np.uint8); cv2.fillPoly(m, [np.array([(x / 640 * W, y / 360 * H) for x, y in SKYLINE], np.int32)], 255, cv2.LINE_AA)
+        _bld["m"] = m
+    z = 1.0 + 0.03 * (1 - smooth((t - 35.85) / 1.0))
+    return warp(_bld["m"], z, 0.5, 0.5, 0.0, 0.0, 0.0, W, H, interp=cv2.INTER_LINEAR)
+
+
 def scene_outro(t, n, acc):
-    canvas = np.zeros((H, W, 3), np.uint8); g1 = None
+    canvas = np.zeros((H, W, 3), np.uint8)
     if t < SH["F6"]["t1"]: canvas = R2.FINALE_HOOK(t, acc) if R2.FINALE_HOOK else render_shot(SH["F6"], t, acc)
     if SH["G1"]["t0"] <= t < SH["G1"]["t1"]:
-        img, g1m = render_shot(SH["G1"], t, acc, want_matte=True); g1 = (img, g1m); a = clamp((t - SH["G1"]["t0"]) / SH["G1"]["fin"])
-        canvas = img.copy() if a >= 0.999 else cv2.addWeighted(canvas, 1 - a, img, a, 0)
+        img = render_shot(SH["G1"], t, acc); a = clamp((t - SH["G1"]["t0"]) / 0.32)
+        canvas = img.copy() if a >= 0.999 else cv2.convertScaleAbs(img, alpha=smooth(a))       # v2: up from black
     if t >= SH["G2"]["t0"]:
-        img = end_logo_frame(t); a = clamp((t - SH["G2"]["t0"]) / 0.4)
+        img = end_logo_frame(t)
+        if t < 36.85:                                 # "PEACEFUL." stands in the sky, behind the towers
+            dt = t - SH["G2"]["t0"]; fo = clamp((36.85 - t) / 0.25); e = out_expo(dt / 0.5); pm, a = T["peaceful"]
+            sky = img.copy(); put(sky, pm, a, W * 0.555, H * (0.300 + 0.03 * (1 - e)) , scale=lerp(0.94, 1.0, e) * (1 + 0.015 * dt), opacity=clamp(dt / 0.25) * fo)
+            comp_matte(sky, img, buildings_mask(t)); img = sky
+        a = clamp((t - SH["G2"]["t0"]) / 0.4)
         canvas = img.copy() if a >= 0.999 else cv2.addWeighted(canvas, 1 - a, img, a, 0)
-    fo = clamp((36.85 - t) / 0.30)
-    if t >= 35.57 and fo > 0:                         # the last word, tucked behind him
-        dt = t - 35.57; e = out_expo(dt / 0.22); pm, a = T["peaceful"]
-        put(canvas, pm, a, W * 0.66, H * 0.585 + (1 - e) * 30 * K, scale=lerp(0.9, 1.0, e) * (1 + 0.02 * dt), rot=-3, opacity=clamp(dt / 0.12) * fo)
-        if g1 is not None and g1[1] is not None:
-            k = clamp((SH["G1"]["t1"] - t) / 0.4); comp_matte(canvas, g1[0], cv2.convertScaleAbs(g1[1], alpha=k) if k < 1 else g1[1])
     return canvas
 
 

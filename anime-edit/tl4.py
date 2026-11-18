@@ -35,10 +35,10 @@ S("A3", 3.92, 5.86, 2, 21.9, z=(1.03, 1.18), pan=((0.5, 0.5), (0.50, 0.44)), gra
 S("B", 5.86, 8.22, 1, 1370.48, z=(1.0, 1.0), grade="raw", mode="title")
 
 # ================= I. THE PAST LIFE — ink, only the magic keeps its colour =================
-S("I1", 8.22, 9.15, 1, 154.16, speed=0.82, grade="battle", ink="wb", rev=True, mode="special")        # out of the giant skull's eye socket
+S("I1", 8.22, 9.15, 1, 154.16, speed=0.82, z=(1.0, 1.0), grade="battle", rev=True, mode="special")        # v2: out of the giant skull's eye socket, no ink
 S("I2", 9.15, 10.08, 1, 120.3, speed=[(0, 1.7), (0.45, 0.75), (1, 0.9)], z=(1.12, 1.03), grade="battle", punch=0.8, matte=True, mode="inkcut")
 S("I3", 10.08, 10.54, 1, 159.70, z=(1.12, 1.04), grade="battle", punch=0.7, ink="wb")
-S("I4", 10.54, 11.03, 1, 195.30, z=(1.04, 1.12), grade="battle", punch=0.7, ink="wb")
+S("I4", 10.54, 11.03, 1, 208.70, speed=1.6, z=(1.10, 1.02), grade="battle", punch=0.7)                     # v2: golden shield circle -> beam
 S("I5", 11.03, 11.98, 1, 368.6, z=(1.24, 1.04), pan=((0.5, 0.40), (0.5, 0.52)), grade="battle", punch=1.0, ink="wb")
 S("I6", 11.98, 12.50, 1, 279.3, z=(1.04, 1.16), pan=((0.5, 0.5), (0.49, 0.42)), grade="battle", punch=0.6, ink="wb")   # Shagrua's eye -> iris
 S("I7a", 12.20, 12.91, 1, 205.0, z=(1.04, 1.04), grade="night", echo=3)                                # the dragon, in colour
@@ -60,7 +60,8 @@ S("Q2L", 20.43, 21.34, 1, 381.4, z=(1.04, 1.04), grade="battle", ink="wb", mode=
 S("Q2R", 20.43, 21.34, 1, 1265.7, z=(1.04, 1.04), grade="city", mode="dip")                               # Shinjuku in the sun
 # ================= III. THE EVIL EYE — he sees the dead; ink returns =================
 S("E1", 21.34, 22.35, 5, 48.56, z=(1.02, 1.08), grade="night", mode="special")      # the show's own cut to the flaring eye lands on the beat (21.80)
-S("E2", 22.05, 23.22, 5, 50.78, z=(1.06, 1.02), grade="night", echo=2)
+S("E2", 22.05, 22.76, 1, 1099.60, z=(1.0, 1.10), grade="night")                                          # v3: the dead, glowing eyes on a red sky
+S("E2b", 22.76, 23.22, 1, 1107.40, z=(1.06, 1.0), grade="night", punch=0.4)                              # v3: Polka, standing before them
 S("E3", 23.22, 23.68, 1, 760.3, z=(1.08, 1.02), grade="city", punch=0.5)                                  # Misaki, alive
 S("E4", 23.68, 24.15, 1, 1029.6, z=(1.03, 1.12), grade="battle", punch=0.9, matte=True, mode="inkcut")    # Misaki, the killer
 S("Q3T", 24.15, 25.10, 1, 279.4, z=(1.0, 1.0), grade="battle", ink="wb", mode="dip")                      # the hero who killed him
@@ -87,7 +88,7 @@ S("PF", 32.44, 32.90, 5, 342.15, speed=0.5, z=(1.0, 1.0), grade="bar", mode="spl
 S("F6", 32.90, 33.95, 5, 405.95, z=(1.16, 1.04), grade="night", punch=1.4, impact=True, matte=True)       # Polka, with the Corpse God behind him
 # ---- outro (unchanged): Polka speaks, official title card played backwards
 S("G1", 33.60, 36.25, 1, 682.9 - (DLG_CLOSE_T - 33.60), z=(1.03, 1.09), grade="city", fin=0.35, matte=True)
-S("G2", 35.85, 39.3, 1, 1295.9, speed=1.40, z=(1.0, 1.0), grade="raw", mode="endlogo", fin=0.4)
+S("G2", 35.45, 39.3, 1, 1295.9, speed=1.40, z=(1.0, 1.0), grade="raw", mode="endlogo", fin=0.4)
 
 
 def letterbox(t):
