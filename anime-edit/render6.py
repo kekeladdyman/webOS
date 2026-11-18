@@ -89,9 +89,75 @@ TR = [(10.54, "whip", "I3", "I4", 0.07, 0.06, (1, 0)), (13.42, "fire", "I7b", "I
       (13.89, "slash", "I8", "I9", 0.06, 0.07, -28), (14.37, "slash", "I9", "I10", 0.06, 0.07, 34),
       (26.47, "whip", "L1", "L2", 0.07, 0.06, (1, 0)), (26.91, "slash", "L2", "L3", 0.06, 0.07, 24),
       (27.38, "whip", "L3", "L4", 0.07, 0.06, (-1, 0)), (27.84, "slash", "L4", "L5", 0.06, 0.07, -30),
-      (28.31, "fire", "L5", "L6", 0.12, 0.08, (255, 80, 220))]
+      (28.31, "fire", "L5", "L6", 0.12, 0.08, (255, 80, 220)),
+      (23.22, "blink", "E2b", "E3", 0.14, 0.14, None)]
 TRS = [(31.05, "whip", "S1", "S2", 0.07, 0.06, (0, -1)), (31.51, "slash", "S2", "S3", 0.06, 0.07, 30), (31.97, "whip", "S3", "S4", 0.07, 0.06, (0, 1))]
-KIND = {"whip": whip, "slash": slash_wipe, "fire": fire_wipe}
+_SH = {}
+
+
+def shatter(A_, B_, u, impact):
+    """v16: the frame cracks from the impact point and breaks apart; shards spin and fall, the next shot is behind."""
+    px, py = impact[0] * W, impact[1] * H
+    if "cells" not in _SH:
+        rng = np.random.default_rng(16); pts = []
+        for r_, n_ in ((0.06, 7), (0.16, 10), (0.32, 14), (0.55, 16), (0.85, 18)):     # denser near the impact
+            for k in range(n_):
+                a = (k + rng.random() * 0.8) / n_ * 2 * math.pi; rr = r_ * W * (0.8 + 0.4 * rng.random())
+                pts.append((min(W - 1, max(0, px + math.cos(a) * rr)), min(H - 1, max(0, py + math.sin(a) * rr))))
+        sub = cv2.Subdiv2D((0, 0, W, H)); [sub.insert((float(x), float(y))) for x, y in pts]
+        facets, centers = sub.getVoronoiFacetList([])
+        cells = []
+        for f, c in zip(facets, centers):
+            f = np.clip(np.array(f, np.float32), [0, 0], [W - 1, H - 1]); m = np.zeros((H, W), np.uint8)
+            cv2.fillConvexPoly(m, f.astype(np.int32), 255, cv2.LINE_AA)
+            x, y, w, h = cv2.boundingRect(f.astype(np.int32))
+            if w < 2 or h < 2: continue
+            d = np.array([c[0] - px, c[1] - py]); dist = np.linalg.norm(d) + 1e-3
+            cells.append(dict(m=m[y:y + h, x:x + w].copy(), box=(x, y, w, h), c=(float(c[0]), float(c[1])), dir=d / dist, dist=dist,
+                              spin=float(rng.normal(0, 140)), delay=float(dist / W * 0.30)))
+        _SH["cells"] = cells
+    canvas = B_.copy()
+    if u < 0.16:                                             # the crack spreads before anything moves
+        k = u / 0.16; out = A_.copy(); lines = np.zeros((H, W), np.uint8)
+        for c in _SH["cells"]:
+            if c["dist"] < k * W * 0.9:
+                x, y, w, h = c["box"]; edge = cv2.morphologyEx(c["m"], cv2.MORPH_GRADIENT, np.ones((3, 3), np.uint8))
+                lines[y:y + h, x:x + w] = cv2.max(lines[y:y + h, x:x + w], edge)
+        out[lines > 0] = (250, 250, 255); return out
+    v = (u - 0.16) / 0.84
+    for c in sorted(_SH["cells"], key=lambda c: -c["dist"]):
+        x, y, w, h = c["box"]; tt = max(0.0, v - c["delay"])
+        if tt <= 0:
+            roi = canvas[y:y + h, x:x + w]; comp_matte(roi, A_[y:y + h, x:x + w], c["m"]); continue
+        push = (420 * K) * tt * (1.6 - c["dist"] / W); grav = 1700 * K * tt * tt
+        ox, oy = c["dir"][0] * push, c["dir"][1] * push + grav; sc = 1.0 + 0.35 * tt
+        M = cv2.getRotationMatrix2D(c["c"], c["spin"] * tt, sc); M[0, 2] += ox; M[1, 2] += oy
+        piece = np.zeros((H, W, 3), np.uint8); pm = np.zeros((H, W), np.uint8)
+        piece[y:y + h, x:x + w] = A_[y:y + h, x:x + w]; pm[y:y + h, x:x + w] = c["m"]
+        bx0, by0 = int(max(0, x + min(0, ox) - w)), int(max(0, y + min(0, oy) - h)); bx1, by1 = int(min(W, x + w + max(0, ox) + w)), int(min(H, y + h + max(0, oy) + h))
+        if bx1 - bx0 < 2 or by1 - by0 < 2: continue
+        wp = cv2.warpAffine(piece, M, (W, H), flags=cv2.INTER_LINEAR); wm = cv2.warpAffine(pm, M, (W, H), flags=cv2.INTER_LINEAR)
+        fade = 1.0 - smooth((tt - 0.45) / 0.35)
+        if fade < 0.999: wm = cv2.convertScaleAbs(wm, alpha=fade)
+        comp_matte(canvas, cv2.convertScaleAbs(wp, alpha=1.0 + 0.4 * tt), wm)
+    return canvas
+
+
+def blink(A_, B_, u, _=None):
+    """v16: an eyelid closes on the first shot and opens on the next."""
+    yy = W6["yy"]; xx = W6["xx"]; arc = 0.10 * H * (1 - ((xx - W / 2) / (W / 2)) ** 2)
+    if u < 0.5: k = smooth(u / 0.5); img = A_
+    else: k = 1 - smooth((u - 0.5) / 0.5); img = B_
+    gap = (1 - k) * (H / 2 + 0.12 * H)
+    top = yy < (H / 2 - gap + arc * (1 - k) * 0.0 - arc * k * 0.0) - (arc if k < 0.999 else 0) * (1 - k)
+    bot = yy > (H / 2 + gap + arc * (1 - k))
+    m = (top | bot).astype(np.uint8) * 255; m = cv2.GaussianBlur(m, (0, 0), 6 * K + 0.5)
+    out = img.copy(); comp_matte(out, np.zeros_like(out), m)
+    if u >= 0.5: out = cv2.GaussianBlur(out, (0, 0), 8 * K * k) if k > 0.05 else out     # focus pulls in as the eye opens
+    return out
+
+
+KIND = {"whip": whip, "slash": slash_wipe, "fire": fire_wipe, "shatter": shatter, "blink": blink}
 
 
 def trans_frame(t, acc, table):
@@ -227,12 +293,15 @@ def scene_body(t, n, acc):
     if 21.22 <= t < 21.44:                           # the burning battlefield takes the whole frame, then his eye
         A_ = R4.diptych(min(t, 21.335), SH["Q2L"], SH["Q2R"], (0.56, 0.52), (0.50, 0.50), 20.43)
         return fire_wipe(A_, render_shot(SH["E1"], t, acc), (t - 21.22) / 0.22, (40, 140, 255))
-    tf = trans_frame(t, acc, TR)
+    tf = trans_frame(t, acc, TR); shat = 14.81 <= t < 15.16
+    if shat:                                         # v16: the word is part of the glass - it breaks with the frame
+        A_ = fr(SH["I10"], t, acc); words_body(A_, min(t, 14.855), acc)
+        tf = shatter(A_, fr(SH["I11"], t, acc), (t - 14.81) / 0.35, (0.47, 0.42))
     if tf is not None: canvas = tf
     elif SH["I2"]["t0"] <= t < SH["I2"]["t1"]: canvas = shot_i2(t, acc)
     elif SH["E4"]["t0"] <= t < SH["E4"]["t1"]: canvas = shot_e4(t, acc)
     else: canvas = _orig_body(t, n, acc)
-    words_body(canvas, t, acc)
+    if not shat: words_body(canvas, t, acc)
     if SH["L1"]["t0"] <= t < SH["L1"]["t1"]: canvas = glitch_hits(canvas, t, SH["L1"]["t0"])
     if SH["E6"]["t0"] <= t < SH["E6"]["t1"]: canvas = glitch_hits(canvas, t, SH["E6"]["t0"], strength=0.6)
     if 15.80 <= t < 16.95:                           # v9: the incantation rides the reincarnation circle, then shrinks with it onto his eye
@@ -393,8 +462,25 @@ def groove(canvas, t):
     return cv2.warpAffine(canvas, M, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT_101)
 
 
+_LIFT = None
+
+
+def shadow_lift(canvas, t):
+    """v15: keep the darkest scenes readable on a phone - a soft toe lifts crushed blacks when most of the frame is near black."""
+    global _LIFT
+    if not (8.22 <= t < 36.85): return canvas
+    sm = cv2.resize(canvas, (64, 36), interpolation=cv2.INTER_AREA); lo = (cv2.cvtColor(sm, cv2.COLOR_BGR2GRAY) < 26).mean()
+    k = clamp((lo - 0.30) / 0.30)
+    if k <= 0.01: return canvas
+    if _LIFT is None:
+        x = np.arange(256, dtype=np.float32) / 255.0
+        _LIFT = np.clip(255 * (x + 0.10 * (1 - x) ** 3.2), 0, 255).astype(np.uint8).reshape(256, 1)
+    lifted = cv2.LUT(canvas, cv2.merge([_LIFT] * 3))
+    return cv2.addWeighted(canvas, 1 - 0.75 * k, lifted, 0.75 * k, 0)
+
+
 def frame_at(n):
-    canvas = groove(R4.frame_at(n), n / FPS); t = n / FPS
+    canvas = shadow_lift(groove(R4.frame_at(n), n / FPS), n / FPS); t = n / FPS
     if CLOSE - 0.15 <= t < 36.05:                    # the closing line, MARATHON-style: big thin serif, lower left, the second line on the bar edge
         f2 = clamp((36.05 - t) / 0.3); bar = tl.letterbox(t) * H
         k = clamp((t - (CLOSE - 0.15)) / 0.3) * f2 * 0.78

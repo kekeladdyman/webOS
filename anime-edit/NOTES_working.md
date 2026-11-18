@@ -267,3 +267,15 @@ BRIEF (all user requests): song uninterrupted; dialogue like MARATHON; reference
   Drum detection unreliable (vocal fills) -> use beat grid.
 - v13: RIVER / WIDE behind the dragon beam via luminance mask (lit>190/200) — rembg fails on dragon/dome/true form.
 - v14: render6.glitch_hits() half-beat stutters on E6 + L1 (applied after words so the tag tears); L1 z=(1.0,1.32); LEMMINGS tag pinned at (0.205,0.80); tear SFX.
+- v15: grade 'ghost' for E2/E2b (lifted); render6.shadow_lift(): toe lift when >30% of frame <26 luma (8.22-36.85).
+
+# ===================== V7 REVAMP: new song SYNTHETIC (user 2026-11-18: "this is the new song I want, revamp the whole edit around this and my references") =====================
+- Song: song2/raw.wav (TikTok sound "SYNTHETIC"), 123 BPM, 41.3s, ends 40.55. Stems song2/sep/htdemucs/raw/. Lyrics (approx): verse 8.74 "face to face with old face... unmasked /
+  Armageddon with tears... these demons unmasked"; drop ad-libs "What?" 18.98 19.54 21.54 22.36 25.02 27.34 29.16 29.72; outro 32.1 "I stare straight in the mirror...
+  I don't even recognize myself / I feel like I've disappeared, I put on a mask... I got nothing". Drop 16.13 (3-3-2 bass), drum accents 24.79 26.70 28.62 30.55.
+- Dialogue (dub, dlg/sep): raw_body (E01 732+) Misaki "Can you say your own name?" 0.05-1.52; Polka "The body that I'm in right now" 9.535-10.98; "its name is Polka Shinoyama" 11.46-13.52.
+  raw_inside2 (E02 1270+) Lisa "Whoever you are, it seems you're not Polka Shinoyama, at least not on the inside." 10.28-14.70 -> post-song tag at 40.80.
+  Song's vocal ad-libs dipped -16 dB under intro dialogue via stems (audio7).
+- Files: tl7.py, render7.py, audio7.py, round7.sh. Signature "SHIGAMI" (user: no preference on name/style) VRENS-style lower-left + JPOXI billing block on end card.
+- v17: first SYNTHETIC cut (fixed H1/L6/T1 source overruns, static intro ST, NOTHING visible).
+- v18: captions MARATHON-size 2-line stacks (a1 118, a2b 176), tag 84; mirror glass (seam, ripple, cold tint, skull from 31.70); S5 bar_hi, S4 battle.
