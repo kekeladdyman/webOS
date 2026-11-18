@@ -42,7 +42,8 @@ def setup():
     X7["face_r"] = layer(cv2.flip(fm, 1), fill=YEL, stroke=((20, 14, 18), 3 * k), shadow=(12 * k, 0.9, 0, 5 * k))
     X7["unmasked"] = R5.vline("UNMASKED", 250)
     X7["armageddon"] = layer(tmask("ARMAGEDDON", SD[0], 380 * k, tracking=-4 * k, wght=(430, 72)), fill=CREAM, glow=((80, 160, 255), 18 * k, 0.5), shadow=(14 * k, 0.9, 0, 6 * k))
-    X7["L_tears"] = letters("TEARS", SD[0], 150 * k, tracking=4 * k, wght=SD[1])
+    X7["L_tears"] = letters("TEARS", SD[0], 200 * k, tracking=4 * k, wght=(400, 72))
+    X7["card_lab"] = mono("EP.01  \u00b7  16:43  \u00b7  THE DEAD", 14, CREAM); X7["card_idx"] = mono("N\u00b0 07", 14, CREAM)
     X7["demons"] = hv("DEMONS", 300, (40, 40, 230), (12, 6, 30))
     X7["synthetic"] = R5.jword("SYNTHETIC", 280, "cold")
     X7["what"] = R5.vline("WHAT?", 120)
@@ -60,9 +61,9 @@ def setup():
     # signature (VRENS style) + billing block (JPOXI style)
     X7["sig"] = layer(tmask("SHIGAMI", "ArchivoItalic.ttf", 60 * k, tracking=-1 * k, wght=(900, 110)), fill=(236, 236, 236), shadow=(4 * k, 0.55, 0, 2 * k))
     dk = (32, 28, 30)
-    X7["b1"] = layer(tmask("AN EDIT BY   SHIGAMI", "Oswald.ttf", 30 * k, tracking=12 * k, wght=600), fill=dk)
-    X7["b2"] = layer(tmask("MUSIC  “SYNTHETIC”     FOOTAGE  DEAD MOUNT DEATH PLAY   EP. 01 · 02 · 04 · 05 · 12", "SpaceMono.ttf", 15 * k, tracking=2.5 * k, vcrop=False), fill=(70, 66, 68))
-    X7["b3"] = layer(tmask("屍神", "ZenAntique.ttf", 34 * k, tracking=4 * k), fill=(38, 22, 206))
+    X7["b1"] = layer(tmask("AN EDIT BY   SHIGAMI", "Oswald.ttf", 38 * k, tracking=12 * k, wght=600), fill=dk)
+    X7["b2"] = layer(tmask("MUSIC  “SYNTHETIC”     FOOTAGE  DEAD MOUNT DEATH PLAY   EP. 01 · 02 · 04 · 05 · 12", "SpaceMono.ttf", 18 * k, tracking=2.5 * k, vcrop=False), fill=(70, 66, 68))
+    X7["b3"] = layer(tmask("屍神", "ZenAntique.ttf", 42 * k, tracking=4 * k), fill=(38, 22, 206))
     # the incantation on the reincarnation circle, new words
     txt = "WHO ARE YOU · THIS BODY’S NAME IS POLKA SHINOYAMA · NOT ON THE INSIDE · "
     R6.W6["ring"] = tmask(txt * 2, SD[0], 56 * k, tracking=8 * k, wght=(520, 72), vcrop=False)
@@ -206,13 +207,19 @@ def scene_verse(t, n, acc):
             under = canvas.copy(); dt = t - 12.78; pm, a = X7["armageddon"]
             put(canvas, pm, a, W * 0.56 - dt * 160 * K, H * 0.56, scale=1.0 + 0.04 * dt, opacity=clamp(dt / 0.06)); lum_through(canvas, under, 175.0)
         return canvas
-    if t < SH["V7"]["t1"]:
-        canvas = fr(SH["V7"], t, acc)
-        if t >= 13.74:                                # the letters fall like tears
+    if t < SH["V7"]["t1"]:                            # v19: the dead children in a floating MARATHON frame; the tears fall out of it
+        cur = SH["V7"]; beat = sum(0.012 * math.exp(-(t - b) / 0.07) for b in tl.B if 0 <= t - b < 0.3)
+        R, e, u = R2.card_pose(t, cur, (-15, -6), (6, 2), (-2.5, -1.0))
+        cw = int(lerp(W * 1.02, W * 0.58, e)) // 2 * 2; ch = cw * 9 // 16 // 2 * 2
+        img = render_shot(cur, t, size=(cw, ch)); cx, cy = W * 0.5, lerp(H * 0.5, H * 0.43, e)
+        canvas = R2.backdrop(img); R2.plus_markers(canvas, R, t, 4.0, 0.36 * e)
+        R2.card(canvas, img, R, cx, cy, 1 + beat, "V7", X7["card_lab"], X7["card_idx"], e)
+        if t >= 13.74:
             ls, (tw, th) = X7["L_tears"]; offs = []
             for i in range(len(ls)):
-                d = max(0.0, t - 13.95 - i * 0.07); offs.append((0.0, d * d * 900 * K, clamp((t - 13.74) / 0.15) * clamp(1 - d / 0.30)))
-            pm, a = word_layer(X7["L_tears"], CREAM, offs, hmul=2.4); pm, a = with_shadow(pm, a, 8 * K, 0.7, 3 * K); put(canvas, pm, a, W * 0.70, H * 0.60)
+                d = max(0.0, t - 13.95 - i * 0.07); offs.append((0.0, d * d * 1100 * K, clamp((t - 13.74) / 0.15) * clamp(1 - d / 0.34)))
+            pm, a = word_layer(X7["L_tears"], YEL, offs, hmul=3.0); pm, a = with_shadow(pm, a, 9 * K, 0.75, 4 * K)
+            text_plane(canvas, pm, a, R, cx - cw * 0.20, cy + ch / 2 + a.shape[0] * 0.30, -120, 1.0, 1.0, 1 + beat)
         return canvas
     if t < SH["V8"]["t1"]:
         canvas = fr(SH["V8"], t, acc); floor_word(canvas, *X7["demons"], t, 14.72, 15.21); return canvas
@@ -405,7 +412,7 @@ def scene_card(t, n):
         u = clamp((dt - 0.55) / 0.35)
         if u > 0:
             put(canvas, *X7["b1"], W * 0.5, H * 0.875, opacity=u); put(canvas, *X7["b2"], W * 0.5, H * 0.925, opacity=u)
-            put(canvas, *X7["b3"], W * 0.5 + X7["b1"][1].shape[1] / 2 + 40 * K, H * 0.875, opacity=u)
+            put(canvas, *X7["b3"], W * 0.5 + X7["b1"][1].shape[1] / 2 + 62 * K, H * 0.873, opacity=u)
     return cv2.convertScaleAbs(canvas, alpha=clamp((tl.END - t) / 0.35))
 
 

@@ -279,3 +279,5 @@ BRIEF (all user requests): song uninterrupted; dialogue like MARATHON; reference
 - Files: tl7.py, render7.py, audio7.py, round7.sh. Signature "SHIGAMI" (user: no preference on name/style) VRENS-style lower-left + JPOXI billing block on end card.
 - v17: first SYNTHETIC cut (fixed H1/L6/T1 source overruns, static intro ST, NOTHING visible).
 - v18: captions MARATHON-size 2-line stacks (a1 118, a2b 176), tag 84; mirror glass (seam, ripple, cold tint, skull from 31.70); S5 bar_hi, S4 battle.
+- v19: V7 dead children as floating MARATHON card (R2.card) with TEARS letters falling off its edge.
+- v20: flash tuning (24.79/26.70 -> 0.12/0.10, 30.55 -> 0.38), L3 punch 0.5, billing block larger. Deliverables: rounds/DMDP_experiment_v20.mp4 + v20_MASTER.mp4.
