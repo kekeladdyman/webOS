@@ -2,7 +2,8 @@
 import sys, os, math
 import numpy as np, cv2
 from PIL import Image, ImageDraw, ImageFont
-import tl2 as tl
+import importlib
+tl = importlib.import_module(os.environ.get("TLMOD", "tl2"))
 from extract import key as clip_key
 
 ROOT = tl.ROOT
@@ -135,14 +136,15 @@ def accents(t):
     return a
 
 
-def render_shot(shot, t, acc=ZERO_ACC, size=None, want_matte=False, zmul=1.0, t_clamp=True):
+def render_shot(shot, t, acc=ZERO_ACC, size=None, want_matte=False, zmul=1.0, t_clamp=True, raw=False):
     """returns graded BGR frame (and the matching matte if want_matte) at `size` (default full frame)."""
     ow, oh = size or (W, H)
     fr = CLIPS.get(shot)
     d = shot["t1"] - shot["t0"]; dt = t - shot["t0"]
     if t_clamp: dt = clamp(dt, 0.0, d)
     u = clamp(dt / d)
-    fi = max(0, min(len(fr) - 1, int(src_time(shot, dt) * tl.SRC_FPS + 1e-4)))
+    st_ = src_time(shot, d - dt) if shot.get("rev") else src_time(shot, dt)
+    fi = max(0, min(len(fr) - 1, int(st_ * tl.SRC_FPS + 1e-4)))
     ue = out_cubic(u) * 0.6 + u * 0.4 if shot["punch"] > 0 else u
     zoom = lerp(shot["z"][0], shot["z"][1], ue) * (1 + acc["zoom"]) * zmul
     (x0, y0), (x1, y1) = shot["pan"]
@@ -154,6 +156,7 @@ def render_shot(shot, t, acc=ZERO_ACC, size=None, want_matte=False, zmul=1.0, t_
     if amp > 0.5: zoom = max(zoom, 1.0 + 2.4 * amp / ow + 0.004)
     zoom = max(zoom, 1.0)
     img = apply_grade(warp(fr[fi], zoom, cx, cy, rot, dx, dy, ow, oh), shot["grade"])
+    if shot.get("ink") and not raw: img = ink(img, shot["ink"], shot.get("ink_pct", 58))
     if shot["impact"] and 0 <= t - shot["t0"] < 3.2 / 60.0 and size is None:
         g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY); thr = float(np.percentile(g[::8, ::8], 62)); m = g > thr
         flip = int((t - shot["t0"]) * 60) % 2 == 0
@@ -250,7 +253,7 @@ def font(name, size, wght=None):
     if k not in _fc:
         f = ImageFont.truetype(f"{FONTS}/{name}", int(round(size)))
         if wght is not None:
-            try: f.set_variation_by_axes(AXES.get(name, lambda w: [w])(wght))
+            try: f.set_variation_by_axes(list(wght) if isinstance(wght, (tuple, list)) else AXES.get(name, lambda w: [w])(wght))
             except Exception: pass
         _fc[k] = f
     return _fc[k]
@@ -331,3 +334,71 @@ def layer(mask, fill=BONE, grad=None, stroke=None, extrude=None, glow=None, shad
 def outline(mask, px):
     k = max(3, int(round(px))) | 1
     return cv2.morphologyEx(mask, cv2.MORPH_GRADIENT, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k)))
+
+
+# ------------------------------------------------------------------ V4: ink treatment + circle transitions
+INK_PAL = {"wb": ((244, 246, 248), (10, 8, 10)), "bw": ((14, 10, 12), (240, 243, 246)), "red": ((12, 6, 10), (45, 24, 224))}
+_clahe = cv2.createCLAHE(clipLimit=2.6, tileGridSize=(4, 4))
+
+
+def ink(img, pal="wb", pct=58, glow=1.0, lines=True):
+    """two-tone ink look (like the show's logo art). bright -> fg, dark -> bg; line art kept; saturated light (eyes, magic) keeps its colour."""
+    fg, bg = INK_PAL[pal]; k_ = img.shape[1] / 1920.0
+    g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    cl = cv2.bilateralFilter(_clahe.apply(g), 7, 40, 5)
+    thr = float(cv2.threshold(cl[::4, ::4], 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[0]) if pct == "otsu" else float(np.percentile(cl[::6, ::6], pct))
+    m = np.clip((cl.astype(np.float32) - thr) / (9.0 * max(0.6, k_)) + 0.5, 0, 1)
+    if lines:                                           # dark outlines inside lit areas survive as ink lines
+        dl = cv2.subtract(cv2.GaussianBlur(g, (0, 0), max(1.2, 3.0 * k_)), g).astype(np.float32)
+        m *= 1.0 - np.clip((dl - 9.0) / 8.0, 0, 1)
+    out = np.asarray(fg, np.float32) * m[..., None] + np.asarray(bg, np.float32) * (1 - m[..., None])
+    if glow > 0:
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        k = np.clip((hsv[..., 1].astype(np.float32) - 95) / 50, 0, 1) * np.clip((hsv[..., 2].astype(np.float32) - 105) / 60, 0, 1)
+        k = (cv2.GaussianBlur(k, (0, 0), max(1.0, 2.0 * k_)) * glow)[..., None]
+        out = out * (1 - k) + np.clip(img.astype(np.float32) * 1.45, 0, 255) * k
+    return np.clip(out, 0, 255).astype(np.uint8)
+
+
+def zoom_at(img, s, px, py, qx=None, qy=None, reflect=False):
+    """scale by s about source point (px,py) and place that point at (qx,qy)."""
+    qx = px if qx is None else qx; qy = py if qy is None else qy
+    M = np.float32([[s, 0, qx - s * px], [0, s, qy - s * py]])
+    return cv2.warpAffine(img, M, (W, H), flags=cv2.INTER_LINEAR if s >= 0.75 else cv2.INTER_AREA,
+                          borderMode=cv2.BORDER_REFLECT_101 if reflect else cv2.BORDER_CONSTANT, borderValue=0)
+
+
+def circ_mask(cx, cy, r, feather=None):
+    m = np.zeros((H, W), np.uint8)
+    if r > 0.5: cv2.circle(m, (int(round(cx)), int(round(cy))), int(round(r)), 255, -1, cv2.LINE_AA)
+    f = (3.0 * K if feather is None else feather)
+    return cv2.GaussianBlur(m, (0, 0), f) if f > 0.4 else m
+
+
+def iris_through(A_, B_, cx, cy, u, ring=(255, 255, 255), s_end=9.0):
+    """camera dives into the point (cx,cy) of A_ while B_ opens inside a growing circle there."""
+    sA = s_end ** (u ** 1.5); qx = lerp(cx, W / 2, smooth(u)); qy = lerp(cy, H / 2, smooth(u))
+    canvas = zoom_at(A_, sA, cx, cy, qx, qy, reflect=True)
+    R = 1.25 * math.hypot(W, H) / 2 * (u ** 2.2)
+    if R > 1:
+        comp_matte(canvas, zoom_at(B_, lerp(1.28, 1.0, out_cubic(u)), W / 2, H / 2), circ_mask(qx, qy, R))
+        if u < 0.92: cv2.circle(canvas, (int(qx), int(qy)), int(R), ring, max(1, int(5 * K * (1 - u))), cv2.LINE_AA)
+    return canvas
+
+
+def circle_match(A_, B_, ca, cb, u, close=0.34, ring=(235, 240, 255)):
+    """A_'s circle ca=(x,y,r) is isolated by a closing iris, then shrinks and lands exactly on B_'s circle cb while B_ pulls back around it."""
+    if u < close:
+        k = smooth(u / close); x, y, r = ca
+        canvas = zoom_at(B_, r / cb[2], cb[0], cb[1], x, y, reflect=True)
+        rf = max(math.hypot(x - px, y - py) for px in (0, W) for py in (0, H)) + 8
+        comp_matte(canvas, A_, circ_mask(x, y, lerp(rf, r, k)))
+        return canvas
+    v = (u - close) / (1 - close); e = smooth(v)
+    x = lerp(ca[0], cb[0], e); y = lerp(ca[1], cb[1], e); r = ca[2] * (cb[2] / ca[2]) ** e
+    canvas = zoom_at(B_, r / cb[2], cb[0], cb[1], x, y, reflect=True)
+    fade = 1.0 - smooth((v - 0.62) / 0.38)
+    m = circ_mask(x, y, r, feather=1.5 * K)
+    comp_matte(canvas, zoom_at(A_, r / ca[2], ca[0], ca[1], x, y), cv2.convertScaleAbs(m, alpha=fade) if fade < 0.999 else m)
+    if fade > 0.05: cv2.circle(canvas, (int(x), int(y)), int(r), tuple(int(c_ * fade) for c_ in ring), max(1, int(3 * K)), cv2.LINE_AA)
+    return canvas

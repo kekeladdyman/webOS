@@ -14,7 +14,7 @@ Source for the 38s edit set to "Ain't No Mountain High Enough". Media is not sto
 
 `tl.py` is the timeline (shots, captions, lyric text); `render.py` draws frames; `audio_mix.py` builds the soundtrack.
 
-## Version 2 and 3 (same script files; version 3 is current)
+## Versions 2-3 (tl2.py + render2.py); current version is 6 (tl4.py + render6.py, see the end of these notes)
 `tl2.py` timeline · `r2core.py` engine (3D planes, cut-out mattes, styled text) · `render2.py` scenes · `audio2.py` soundtrack with effects ·
 `prep2.py` clip extraction + character mattes (rembg `isnet-anime`).
 Run: `python prep2.py` → `python audio2.py` → `python render2.py final` → mux `out/final2_video.mp4` + `out/mix2.wav`.
@@ -184,3 +184,80 @@ Finale spell: 6:26.2 blue circles | 6:28.8(2.0s) Polka pink eyes ECU *** | 6:29.
 - Cafe fight: L1-L6 (25.80-28.55), P1/P2 pocket, F1-F6 chorus all from E04 end / E05 bar. Grades "bar"/"bar_hi" brighten the dark bar footage.
 - Only cafe matte that works: F6 (Polka in blue light) -> final chorus word split in two halves either side of his head, behind him.
 - Too dark to use even graded: E05 strike 1:30.8, skeletal lunge 6:55, Polka hand-out 4:56, bone hand 4:59.
+
+# ===================== V4 (user feedback 2026-11-18 #3) =====================
+User: "0:08 till 0:33, basically the whole edit — you took the song's lyrics LITERALLY and made a literal creative work, which doesn't work with me.
+I wanted creativity / uniqueness, not this."
+=> REMOVE all lyric typography + lyric-illustration logic from 8.22-33.6. Keep: film-reel opening (0-5.86), official EN logo (5.86-8.22),
+   3 dialogue lines, cafe/Lemmings fight (user asked for it), official JP end card. Song stays.
+## V4 concept: "One soul, two lives — seen through the Evil Eye" (visual-idea driven, no lyric text)
+ 1. IRIS / circle match-cuts: scenes are entered through circles that exist in the footage (logo "O" -> skull eye socket, magic rings, pupils, reincarnation circle).
+ 2. RHYME diptychs past | present (skeleton army | Shinjuku crowd, Shagrua's eye | Lemmings' eye, skull | Polka face ...).
+ 3. INK two-tone treatment for the dark Lemmings fight (turn the darkness into a graphic style).
+ 4. Echo trails / speed ramps on action; cut-out parallax on characters with working mattes; skull composited behind Polka for the finale.
+## V4 refinement after ink test (peek/ink_test.jpg)
+- INK = CLAHE + bilateral + percentile soft threshold -> two-tone; saturated bright pixels (eyes, magic) keep their colour. Works great on dark cafe shots:
+  L hand, fist catch, L grin, P lunge (***), bones sweep, skeletal lunge, M held, P eyes, L face/reveal (blue bandage glow kept). Fails: bone hand 299.6, P hand 296.7.
+- Palettes: white-on-black (matches official logo art), black-on-white (inverse), black-on-RED (Lemmings / blood).
+- Meaning: INK = death / past life / the dead; COLOUR = life + magic/soul. Body grows out of the official logo's own B/W ink art.
+- Body plan (no lyric text): 8.22 through logo "O" -> giant skull eye socket (ink) | other-world battle in ink w/ coloured magic | reincarnation circle -> Polka's eye opens in
+  full colour (Shinjuku = colour) | rhyme diptychs past(ink)|present(colour) | Evil Eye ignites -> ink returns | Misaki alive(colour)->killer(red ink) |
+  Shagrua eye | Lemmings eye | cafe fight in ink | vow card | chorus = colour spell, split-face skull|Polka, finale Polka cut-out with ink skull behind.
+## V4 measured coordinates (normalised x,y of the full frame)
+- Logo "O" of MOUNT (full stacked logo): centre (0.172, 0.505), inner black counter ~62 px wide at 1080p -> push-in ~34x to fill with black.
+- E01 giant skull shot 154.15-154.95 is the show's own PUSH INTO THE EYE SOCKET (ECU at 154.9: socket ~ x0.42-1.0, y0-0.42; zoom 3 at (0.72,0.18) = black).
+  -> play REVERSED after the logo "O" = match cut O -> socket, pull back to the skull.
+- Shagrua glowing eye (E01 279.5 / 337.5): eye at (0.49, 0.36).  Reincarnation circle (E01 531.3-531.8): centre ~(0.37-0.42, 0.51), r ~0.31-0.36 W.
+- Polka's eye opens (E01 594.3+): iris centre (0.545, 0.36), r ~0.05 W.  Polka Evil Eye ignite (E05 49.5): centre (0.49, 0.40).
+- Skull front (E05 413.2): eye sockets (0.33,0.20),(0.67,0.22). Skull red eyes (414.3): (0.40,0.13),(0.735,0.19). Polka front (342.6): eyes (0.365,0.405),(0.635,0.405).
+- Lemmings eye (E04 1302.5): (0.44, 0.52). Lemmings standing hooded (E04 1318.6) centred. Polka blue light (E05 406.5): head (0.50,0.38).
+## V4 cut list (on musical BEATS now, not lyric syllables; CHORUS drop moved 30.50 -> 30.58)
+ I1 8.22 skull rev | I2 9.15 Shagrua sword (ink on red, cut-out) | I3 10.08 rings | I4 10.54 lightning | I5 11.03 skeleton lord | I6 11.98 Shagrua eye -> IRIS 12.42
+ | I7 12.42 dragon (echo) | I8 13.42 scream | I9 13.89 gold slash | I10 14.37 sword strike | I11 14.86 dome | I12 15.33 pillar -> white
+ | R1 15.77 reincarnation circle -> CIRCLE MATCH 16.67 -> R2 Polka's eye (colour) | R3 17.65 tower | R4 18.60 street
+ | 19.50 rhyme: Corpse God+children (ink) | Polka+twins (colour) | 20.43 rhyme: burning battlefield (ink) | Shinjuku skyline (colour)
+ | E1 21.34 Evil Eye ignites -> IRIS 22.27 -> E2 ghosts | E3 23.22 Misaki smile | E4 23.68 Misaki w/ knife (red ink) | 24.15 stare-down: Shagrua eye / Lemmings eye
+ | E6 25.10 Lemmings standing | L1 25.54 reveal | L2 26.47 fist | L3 26.91 hand | L4 27.38 Misaki | L5 27.84 Polka lunge | L6 28.31 ghosts
+ | pocket 28.55 (vow) | S1 30.58 energy | S2 31.05 circles (mirror) | S3 31.51 skeleton | S4 31.97 true form | S5 32.44 split face skull|Polka | S6 32.90 Polka + skull behind
+
+# ===================== V5 (user clarification 2026-11-18 #4) =====================
+User (while V4 was rendering): "THE LYRICS ARE NOT THE PROBLEM, IT'S THE FONTS. I WANT YOU TO USE THE REFERENCED EDIT FONTS."
+=> I misread #3. Lyric words on screen are wanted; my typefaces (Instrument Serif, Mr Dafoe script, Grenze Gotisch, Shrikhand, Permanent Marker) were the problem.
+=> V5 = V3 visuals (official logos + cafe fight, colour) with typography REDONE in the reference edits' fonts and text treatments.
+   V4 (ink concept, no text; tl4.py/render4.py/audio4.py, out/DMDP_edit_v4_*.mp4) was built on the misreading: keep only as an optional alternate cut.
+- On-screen song text: key single words / short fragments only (do not write out full lyric lines).
+## Reference typography (ref/type_refs.jpg)
+- JPOXI (Demon Slayer): ONE WORD AT A TIME, heavy medium-condensed grotesque, oblique, ALL CAPS, thrown in 3D perspective, soft glow, colour picked from the scene
+  (teal on orange scenes, orange/red on teal), sometimes behind the character. (Helvetica-Condensed-Heavy-Oblique feel.) Signature "@JPOXI" same face upright.
+- VRENS (One Piece/Naruto): stacks of 2-3 lines building word by word, Impact-like heavy condensed caps, skewed + rotated in 3D, WHITE with one RED highlight word, hard black shadow.
+  Title cards on black: bold italic Didone serif caps (cream "BE", red "KATON"); signature "VRENS" bold italic sans.
+- MARATHON (same song): thin high-contrast serif CAPS, chartreuse yellow, tight 2-line stacks sitting on / overlapping the tilted frame's bottom-left edge, replaced phrase by phrase;
+  dialogue = same serif, large, lower-left, word by word. Micro HUD text + corner marks.
+- AIDOUR: "TURN IT UP" heavy condensed caps stacked. VINLAND: giant bold grotesque letters cut off by the frame edge / standing in scene depth, tiny tracked caps signature.
+- NOT in any reference (so remove): brush script, blackletter, retro display (Shrikhand), marker handwriting.
+## V5 type system (matched in ref/font_compare.jpg)
+- MARATHON thin serif caps  -> Newsreader wght 200 (300 for dialogue), opsz 72. Chartreuse-yellow, 2-line stacks on the tilted frame's lower-left edge; dialogue same face, word by word.
+- JPOXI heavy oblique        -> Archivo Italic wght 900 width 75. One word at a time, 3D perspective, glow, colour from the scene (hot orange-red / bone / cold teal), behind the character where a cut-out exists.
+- VRENS stacked skewed caps  -> Anton sheared 0.20, white + one red line, hard black shadow, rotated block in perspective.
+- VRENS title-card serif     -> Playfair Display Italic 900, red (the "KATON" card).
+- Removed: Mr Dafoe script, Grenze Gotisch blackletter, Shrikhand, Permanent Marker, IM Fell, Instrument Serif, kanji display faces.
+- On-screen song words kept SPARSE: single key words + the song's title in the chorus; never full lyric lines.
+- Files: render5.py (imports render2, overrides text in every scene), audio5.py (= V3 mix minus marker-scribble sounds), timeline = tl2.py (V3).
+
+# ===================== V6 (user feedback 2026-11-18 #5, while V5 rendered) =====================
+User: "don't just change the fonts but change the way you express the scenes. Don't just do literal — use unique ways to integrate the edit in the
+scenes instead of using the whole frame: eye transitions, fight transitions, fire transitions, words in weird cinematic places."
+=> V6 = V4 scene language (tl4.py/render4.py: eye iris + circle match transitions, split panels, ink) + V5 reference fonts (render5.T)
+   + NEW: fight transitions (slash wipes along sword cuts, whip pushes), fire wipes (burn mask + ember edge), words placed INSIDE scenes
+   (behind cut-out figures, on the floor in perspective, vertical up the tower, on the seam between panels, cut by the sword slash, giant + cropped by frame).
+- V5 (out/DMDP_edit_v5_*.mp4 = V3 + reference fonts only) superseded, not sent. On-screen song words stay sparse (single key words + title).
+- Files: render6.py (imports render4 + render5), timeline tl4.py, soundtrack out/mix4.wav (audio4.py).
+## V6 build state (delivered: out/DMDP_edit_v6_1080p60.mp4 + MASTER)
+- Run: TLMOD=tl4 python prep2.py ; python audio4.py ; python render6.py final ; mux out/final6_video.mp4 + out/mix4.wav. Debug: TS=9.5,13.3 OUT=out/x.jpg python dbg6.py
+- render6 = render4 (scene_body/scene_spell wrapped) + render5 type (R5.T, film_text, scene_pocket, scene_outro) + transitions TR/TRS + words_body().
+- Transitions: logo "O" -> skull eye socket; Shagrua's eye iris (12.20); dragon-fire burn (13.42); slash wipes 13.89/14.37 + slash_split through the word;
+  reincarnation circle -> Polka's eye (16.45); fire wipe from battlefield panel -> Evil Eye (21.22); Evil Eye iris (22.05); cafe: whip/slash/whip/slash/magenta burn; spell: whip/slash/whip.
+- Words in scenes: behind Shagrua (black on red) + vertical up the frame edge; on the ground under the skeleton army; giant, cropped by frame bottom; letters pulled
+  across the dragon; cut by the sword; vertical beside the tower; lying on the street; one letter per panel across the seam; black band on the seam between the eyes;
+  MISAKI behind her; LEMMINGS tag; thrown / struck-out words in the fight; floor of the bar; split behind Polka with the skull.
+- Not sent / superseded: V4 (ink, no text), V5 (V3 + reference fonts only).

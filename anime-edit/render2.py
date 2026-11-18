@@ -295,6 +295,11 @@ def scene_logo(t, n):
     else:
         fi = min(len(fr) - 1, st[3] + int(dt * tl.SRC_FPS))
     z = 1.0 + 0.035 * math.exp(-dt / 0.09) + (0.02 * dt / 0.95 if seg == 3 else 0.0)
+    push = getattr(tl, "LOGO_PUSH", None)
+    if push and t >= push[0]:                      # V4: the camera dives into the "O" of MOUNT (its black counter becomes the skull's eye socket)
+        u = clamp((t - push[0]) / (LOGO_T[4] - push[0])); zz = z * push[3] ** (u ** 2.4)
+        img = cv2.resize(fr[fi], (W, H)) if fr[fi].shape[1] != W else fr[fi]
+        return zoom_at(img, zz, push[1] * W, push[2] * H, lerp(push[1] * W, W / 2, smooth(u * 1.3)), lerp(push[2] * H, H / 2, smooth(u * 1.3)))
     return warp(fr[fi], z, 0.5, 0.5, 0.0, 0.0, 0.0, W, H)
 
 
@@ -561,7 +566,7 @@ def scene_action(t, n, acc):
 
 def scene_pocket(t, n):
     s1, s2 = SH["P1"], SH["P2"]; cur = s1 if t < s2["t0"] else s2
-    grow = in_expo((t - 29.95) / 0.55) if t > 29.95 else 0.0
+    g0 = tl.CHORUS - 0.55; grow = in_expo((t - g0) / 0.55) if t > g0 else 0.0
     R = Rmat(lerp(9, -5, smooth((t - 28.55) / 1.95)) * (1 - grow), (3 + 1.5 * slow(t, 3)) * (1 - grow), -1.5 * (1 - grow))
     hb = sum(0.022 * math.exp(-(t - b) / 0.10) for b in (28.70, 28.98, 29.60, 29.88) if t >= b)
     cw = int(lerp(W * 0.50, W * 1.03, grow)) // 2 * 2; ch = cw * 9 // 16 // 2 * 2
@@ -631,6 +636,7 @@ def scene_chorus(t, n, acc):
 
 
 # ====================================================================== G. outro + end title
+FINALE_HOOK = None
 END_MAP = [(35.85, 1300.90), (36.85, 1300.00), (36.85, 1299.80), (37.45, 1297.52), (37.45, 1297.45), (37.55, 1297.27), (37.55, 1297.14), (39.30, 1296.00)]
 
 
@@ -646,7 +652,7 @@ def end_logo_frame(t):
 
 def scene_outro(t, n, acc):
     canvas = np.zeros((H, W, 3), np.uint8); g1 = None
-    if t < SH["F6"]["t1"]: canvas = render_shot(SH["F6"], t, acc)
+    if t < SH["F6"]["t1"]: canvas = FINALE_HOOK(t, acc) if FINALE_HOOK else render_shot(SH["F6"], t, acc)
     if SH["G1"]["t0"] <= t < SH["G1"]["t1"]:
         img, g1m = render_shot(SH["G1"], t, acc, want_matte=True); g1 = (img, g1m)
         a = clamp((t - SH["G1"]["t0"]) / SH["G1"]["fin"])
@@ -675,13 +681,13 @@ def scene_outro(t, n, acc):
 
 
 # ====================================================================== post + dispatch
-def post(img, t, acc, n, grain=0.085, glow0=0.10, vig=1.0, ca=True):
+def post(img, t, acc, n, grain=0.085, glow0=0.10, vig=1.0, ca=True, streak=True):
     ga = glow0 + acc["glow"]
     sm = cv2.resize(img, (W // 4, H // 4), interpolation=cv2.INTER_AREA)
     br = cv2.subtract(sm, np.full_like(sm, 140))
     bl = cv2.GaussianBlur(br, (0, 0), W / 4 * 0.022)
     img = cv2.addWeighted(img, 1.0, cv2.resize(bl, (W, H), interpolation=cv2.INTER_LINEAR), ga * 2.2, 0)
-    if 8.22 <= t < 15.5 or 25.8 <= t < 33.6:           # anamorphic streak on the magic
+    if streak and (8.22 <= t < 15.5 or 25.8 <= t < 33.6):           # anamorphic streak on the magic
         st = cv2.blur(cv2.subtract(sm, np.full_like(sm, 185)), (int(W / 4 * 0.42) | 1, 1))
         st = cv2.multiply(st, np.full_like(st, (255, 170, 120)), scale=1 / 255.0)
         img = cv2.addWeighted(img, 1.0, cv2.resize(st, (W, H), interpolation=cv2.INTER_LINEAR), 1.5, 0)
@@ -696,10 +702,14 @@ def post(img, t, acc, n, grain=0.085, glow0=0.10, vig=1.0, ca=True):
     if 16.67 <= t < 17.0: fl += 0.35 * (1 - (t - 16.67) / 0.33)
     if 5.86 <= t < 6.06: fl += 0.75 * (1 - (t - 5.86) / 0.20)
     if tl.CHORUS <= t < tl.CHORUS + 0.3: fl += 0.55 * (1 - (t - tl.CHORUS) / 0.3)
-    if 25.80 <= t < 25.98: fl += 0.6 * (1 - (t - 25.80) / 0.18)
-    for ph in PH:
-        d = t - SH[ph["name"]]["t0"]
-        if 22.0 < t < 25.6 and 0 <= d < 0.10: fl += 0.22 * (1 - d / 0.10)       # camera flash as each photo lands
+    if hasattr(tl, "FLASHES"):
+        for f0, fd, fa in tl.FLASHES:
+            if f0 <= t < f0 + fd: fl += fa * (1 - (t - f0) / fd)
+    else:
+        if 25.80 <= t < 25.98: fl += 0.6 * (1 - (t - 25.80) / 0.18)
+        for ph in PH:
+            d = t - SH[ph["name"]]["t0"]
+            if 22.0 < t < 25.6 and 0 <= d < 0.10: fl += 0.22 * (1 - d / 0.10)       # camera flash as each photo lands
     if fl > 0.004: img = cv2.addWeighted(img, 1.0, np.full_like(img, 255), min(fl, 1.0), 0)
     img = cv2.addWeighted(img, 1.0, A.noise[(n // max(1, FPS // 24)) % 6], grain, -128 * grain)
     if vig <= 0.001: return img

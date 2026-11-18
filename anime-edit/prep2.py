@@ -1,7 +1,8 @@
 """Extract v2 clips + compute character mattes for shots flagged matte=True."""
 import os, sys, numpy as np, cv2, time
 from concurrent.futures import ThreadPoolExecutor
-import tl2, extract
+import importlib, extract
+tl2 = importlib.import_module(os.environ.get('TLMOD', 'tl2'))
 os.makedirs(f"{tl2.ROOT}/mattes", exist_ok=True)
 with ThreadPoolExecutor(3) as ex: outs = list(ex.map(extract.run, tl2.SHOTS))
 print(len(set(outs)), "clips", flush=True)
