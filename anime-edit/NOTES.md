@@ -14,6 +14,13 @@ Source for the 38s edit set to "Ain't No Mountain High Enough". Media is not sto
 
 `tl.py` is the timeline (shots, captions, lyric text); `render.py` draws frames; `audio_mix.py` builds the soundtrack.
 
+## Version 2 (current)
+`tl2.py` timeline · `r2core.py` engine (3D planes, cut-out mattes, styled text) · `render2.py` scenes · `audio2.py` soundtrack with effects ·
+`prep2.py` clip extraction + character mattes (rembg `isnet-anime`).
+Run: `python prep2.py` → `python audio2.py` → `python render2.py final` → mux `out/final2_video.mp4` + `out/mix2.wav`.
+Sound effects are Mixkit free-licence files saved as `sfx/<id>.wav` (ids and timings in `audio2.py`; measurements in `sfx/analysis.json`;
+`https://assets.mixkit.co/active_storage/sfx/<id>/<id>.wav`). Extra fonts are listed in the notes below.
+
 # DMDP edit — working notes (shot ids = shots/epXX.json index; times mm:ss in episode)
 
 ## Song (uploads/b6fe2d68...mp4 -> audio/song.wav)
@@ -96,3 +103,36 @@ E8 28.31-30.12 (music muffled, MID line @28.22): E05 twins hug (1076.3) | E12#31
 F chorus 30.12-33.37: E12#328 hero circles (1189.5) | E12#292 sphere burst (1054.5) | E12#318 spectral hands (1169.5) | E01#594/E12#182 skull demon
   | E01#292 rainbow burst (459.2) | E12#248 burst (842.4)/E01#598 (1290.5) | E01#674 Polka hero CU (1392.7)
 G outro 33.37-37.3: E01#590 skyline (CLOSE line @33.6) | E01#389 Polka closes eyes (683.5) | end title on black.
+
+# ===================== V2 (user feedback 2026-11-18) =====================
+User liked concept. Wants: more creative fonts + better placement, "border tricks" + other cinematic tricks, better use of scenes,
+SOUND EFFECTS for a movie feel ("a little cinematic but still an edit"). Keep song, story, 3 dialogue lines.
+## Reference analysis (dense sheets in ref/r_*.jpg)
+- MARATHON (same song!): footage shrunk into a TILTED 3D thin-bordered frame (double line border, corner ticks, + markers on black),
+  elegant thin serif caps lyrics in yellow OVERLAPPING the frame's bottom edge ("AIN'T NO MOUNTAIN / HIGH / VALLEY / LOW / RIVER / WIIIIDE / ENOUGH, BABY");
+  techno title + katakana alt title; dialogue big serif lower-left word by word. -> this is what user means by "border tricks".
+- JPOXI: every lyric word on screen, 3D-perspective tilted bold italic, colour matched to scene, text BEHIND characters, glow.
+- VRENS: stacked bold condensed italic lines building up, red highlight words, cut-out characters on paper bg, title cards.
+- Aidour (mixed): pure motion flow/match cuts, no static shots. Vinland: big serif cut off at edges + script word, glass strips, HUD glyphs.
+## V2 tools verified
+- Character mattes: rembg `isnet-anime` (0.7s/frame). WORKS: Shagrua sword (E01 121.6), Polka hero CU (E01 1393.5), Misaki smile (761.2),
+  Misaki laugh (1030.2), twins hug (E05 1077.5), Polka speaks (E01 683.5), half-skull (E12 1127). FAILS: scream, tiny figure in circles, extreme CU, dark hand, skeleton.
+- SFX: Mixkit free library, 113 files in sfx/<id>.wav, measured in sfx/analysis.json (on/peak/end seconds, LUFS). catalog: sfx_src/catalog.json.
+  (assets.mixkit.co/active_storage/sfx/<id>/<id>.wav ; listing pages need browser headers)
+- Fonts added in fonts/: InstrumentSerif(+Italic), Fraunces(+Italic var), GrenzeGotisch(var), UnifrakturCook, PirataOne, IMFell(+Italic), MrDafoe,
+  PermanentMarker, RockSalt, ReenieBeanie, DelaGothicOne(JP), ZenAntique(JP), ShipporiMinchoB1(JP), YujiSyuku(JP), BodoniModa(+Italic), AbrilFatface,
+  Shrikhand, RubikWetPaint, Yellowtail, Monoton, BigShoulders.
+## V2 plan (sections keep v1 timing)
+A cold open = old FILM REEL frame (sprockets, flicker, scratches), dialogue as INK text inside the storybook picture, kanji 平穏.
+B title zoom-through kept + frame lines, micro text, katakana, SFX hit/riser.
+C verse = footage alternates FULL <-> floating 3D bordered CARD; MOUNTAIN/VALLEY/RIVER overlap/behind the card; text behind Shagrua; ENOUGH blackletter.
+D reincarnation -> Shinjuku location card 新宿; "how far" = two cards drifting apart in depth.
+E "just call my name" = POLAROID stack with handwritten names (kids, Misaki, Takumi, me) + shutter SFX; punch through Polka's photo into eye-ignite action.
+P pocket = intimate card, heartbeat SFX, "I'll protect you, / no matter what." (blackletter).
+F chorus = full-frame, 3D/extruded word slams, ENOUGH behind Polka (matte).
+G outro = Polka speaks, "peaceful." big; end lockup with red hanko seal 屍神殿 + church bell.
+## V2 build state
+- Files: tl2.py (timeline), r2core.py (engine: 3D planes, mattes, text layers), render2.py (scenes), audio2.py (mix + SFX), prep2.py (clips + mattes).
+- Run: python prep2.py ; python audio2.py ; python render2.py final ; mux out/final2_video.mp4 + out/mix2.wav. Debug frames: TS=1.0,9.4 OUT=out/x.jpg python dbg2.py
+- SFX balance: per-sound loudness target + peak cap (lv+10.5 dB) + bus trim -2 dB; verified RMS per section (sfx ~2-5 dB under music, equal at title/chorus).
+- Known design choices: ENOUGH (chorus) sits in FRONT lower third (Polka's head fills frame); "peaceful." is behind Polka via matte; END=39.3s.
