@@ -81,7 +81,7 @@ def film_text(pic, t):
     elif t < 3.92:
         ink_(I["WAS"], pw * 0.565, ph * 0.10, OPEN + 1.95); ink_(I["PEACE."], pw * 0.565, ph * 0.215, OPEN + 2.17)
     else:
-        x = pw * 0.60
+        x = pw * 0.475
         for w, off in (("NOTHING", 0.0), ("MORE.", 0.30)): ink_(I[w], x, ph * 0.60, OPEN + 3.60 + off); x += I[w].shape[1] + 20 * K
 
 

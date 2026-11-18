@@ -24,6 +24,8 @@ def setup():
     rot = lambda L: (cv2.rotate(L[0], cv2.ROTATE_90_COUNTERCLOCKWISE), cv2.rotate(L[1], cv2.ROTATE_90_COUNTERCLOCKWISE))
     W6["mount"] = layer(tmask("MOUNTAIN", HV[0], 330 * k, tracking=-3 * k, wght=HV[1]), fill=(12, 6, 10))
     W6["high_v"] = rot(R5.vline("HIGH", 190)); W6["shin_v"] = rot(R5.vline("SHINJUKU", 150))
+    _txt = "IF YOU NEED ME \u00b7 CALL ME \u00b7 NO MATTER WHERE YOU ARE \u00b7 NO MATTER HOW FAR \u00b7 "
+    _st = tmask(_txt * 2, SD[0], 56 * k, tracking=8 * k, wght=(520, 72), vcrop=False); W6["ring"] = _st
     W6["L_wide"] = letters("WIDE", SD[0], 240 * k, tracking=-2 * k, wght=(520, 72)); W6["L_far"] = letters("FAR", SD[0], 300 * k, tracking=-2 * k, wght=(520, 72))
     W6["valley"] = hv("VALLEY", 300, YEL, (20, 40, 40)); W6["low"] = R5.serif("LOW", 64, YEL, SD)
     W6["river"] = layer(tmask("RIVER", SD[0], 470 * k, tracking=-4 * k, wght=(460, 72)), fill=CREAM, glow=((255, 200, 120), 18 * k, 0.45), shadow=(14 * k, 0.9, 0, 6 * k))
@@ -165,6 +167,24 @@ def words_body(canvas, t, acc):
             cv2.line(canvas, (int(x0), int(cy + 8 * K + half * 0.07)), (int(x1), int(cy + 8 * K + half * 0.07 - (x1 - x0) * 0.07)), VRED, max(3, int(22 * K)), cv2.LINE_AA)
 
 
+def ring_text(canvas, cx, cy, r, ang0, a_):
+    """v9: an incantation written around a magic circle (text bent onto a ring, rotating)."""
+    if a_ <= 0.01 or r < 20 * K: return
+    st = W6["ring"]; hs, ws = st.shape; band = hs * (r / (0.30 * W)) ** 0.0
+    x0, x1 = int(max(0, cx - r - hs)), int(min(W, cx + r + hs)); y0, y1 = int(max(0, cy - r - hs)), int(min(H, cy + r + hs))
+    if x1 - x0 < 4 or y1 - y0 < 4: return
+    dx = W6["xx"][y0:y1, x0:x0 + (x1 - x0)] - cx; dy = W6["yy"][y0:y1, x0:x1] - cy
+    rad = np.sqrt(dx * dx + dy * dy); th = np.arctan2(dy, dx)
+    sx = (((th - ang0) / (2 * np.pi)) % 1.0) * ws; sy = (r + hs / 2 - rad) * (hs / band)
+    m = cv2.remap(st, sx.astype(np.float32), sy.astype(np.float32), cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=0)
+    m = cv2.convertScaleAbs(m, alpha=a_); roi = canvas[y0:y1, x0:x1]
+    band_m = np.clip(1.0 - np.abs(rad - r) / (hs * 0.62), 0, 1) ** 0.6 * 0.62 * a_          # a dark engraved band under the letters
+    roi[:] = (roi.astype(np.float32) * (1 - band_m[..., None])).astype(np.uint8)
+    glow = cv2.GaussianBlur(m, (0, 0), 6 * K + 0.5)
+    roi[:] = cv2.add(roi, cv2.merge([cv2.convertScaleAbs(glow, alpha=0.30), cv2.convertScaleAbs(glow, alpha=0.62), cv2.convertScaleAbs(glow, alpha=0.95)]))
+    comp_matte(roi, np.full_like(roi, (226, 240, 250)), m)
+
+
 def scene_body(t, n, acc):
     if 21.22 <= t < 21.44:                           # the burning battlefield takes the whole frame, then his eye
         A_ = R4.diptych(min(t, 21.335), SH["Q2L"], SH["Q2R"], (0.56, 0.52), (0.50, 0.50), 20.43)
@@ -175,6 +195,16 @@ def scene_body(t, n, acc):
     elif SH["E4"]["t0"] <= t < SH["E4"]["t1"]: canvas = shot_e4(t, acc)
     else: canvas = _orig_body(t, n, acc)
     words_body(canvas, t, acc)
+    if 15.80 <= t < 16.95:                           # v9: the incantation rides the reincarnation circle, then shrinks with it onto his eye
+        ca = R4.reinc_circle(min(t, 16.95)); ang = -0.9 * (t - 15.80) - 0.4
+        if t < 16.45: x, y, rr = ca[0], ca[1], ca[2] * 0.64; a_ = clamp((t - 15.80) / 0.3)
+        else:
+            u = (t - 16.45) / 0.50; bx, by, bz = R4.to_screen(SH["R2"], t, ZERO_ACC, 0.545, 0.36); cb = (bx, by, 0.05 * W * bz)
+            if u < 0.34: x, y, rr = ca[0], ca[1], ca[2] * 0.64
+            else:
+                e = smooth((u - 0.34) / 0.66); x = lerp(ca[0], cb[0], e); y = lerp(ca[1], cb[1], e); rr = ca[2] * 0.64 * ((cb[2] * 1.6) / (ca[2] * 0.64)) ** e
+            a_ = 1.0 - smooth((u - 0.55) / 0.40)
+        ring_text(canvas, x, y, rr, ang, a_)
     if 14.37 <= t < 14.86: canvas = slash_split(canvas, 34, (22 * math.exp(-(t - 14.37) / 0.22) + 5) * K)     # the sword cuts the word too
     return canvas
 
@@ -215,7 +245,7 @@ def scene_spell(t, n, acc):
         text_plane(canvas, *T["c_mount"], Rmat(0, -58, 0), W * 0.5, H * 1.02 + (1 - e) * H * 0.3, 0, 0.80, clamp(dt / 0.04))
     elif t < 32.44:
         dt = t - 31.97
-        slam(canvas, *T["c_high"], Rmat(24, 0, 0), W * 0.215, H * 0.56 - out_cubic(dt / 0.5) * H * 0.07, t, 31.97, lroll=-4, sy=1 + 0.9 * out_cubic(dt / 0.45), sc=0.46)
+        slam(canvas, *T["c_high"], Rmat(24, 0, 0), W * 0.215, H * 0.53 - out_cubic(dt / 0.5) * H * 0.07, t, 31.97, lroll=-4, sy=1 + 0.9 * out_cubic(dt / 0.45), sc=0.62)
     return canvas
 
 
@@ -254,6 +284,38 @@ def scene_pocket(t, n):
     return canvas
 
 
+_orig_film = R2.scene_film
+
+
+def scene_film(t, n):
+    """v8: the reel, with single subliminal frames of what is coming spliced in on the intro's strongest beats."""
+    canvas = _orig_film(t, n)
+    for nm, t0, *_ in tl.FLASH:
+        if t0 <= t < t0 + 1.0 / 24:
+            A = R2.A; pw, ph = A.pw, A.ph; x0 = (W - pw) // 2; y0 = (H - ph) // 2
+            pic = render_shot(SH[nm], t0, size=(pw, ph))
+            canvas[y0:y0 + ph, x0:x0 + pw] = cv2.multiply(pic, A.film_vig, scale=1 / 255.0)
+    return canvas
+
+
+R2.scene_film = scene_film
+_orig_post = R2.post
+
+
+def post(img, t, acc, n, *args, **kw):
+    """v10: film halation on the colour scenes - a warm glow bleeds around the brightest highlights."""
+    out = _orig_post(img, t, acc, n, *args, **kw)
+    if 8.22 <= t < 36.85 and not R4.inked(t) and not (tl.BY["SKa"]["t0"] <= t < tl.BY["F6"]["t0"]):
+        sm = cv2.resize(out, (W // 4, H // 4), interpolation=cv2.INTER_AREA)
+        lum = cv2.cvtColor(sm, cv2.COLOR_BGR2GRAY).astype(np.float32)
+        hl = np.clip((lum - 218.0) / 37.0, 0, 1); hl = cv2.GaussianBlur(hl, (0, 0), W / 4 * 0.010) - cv2.GaussianBlur(hl, (0, 0), W / 4 * 0.002) * 0.6
+        hl = np.clip(hl, 0, 1)
+        hal = np.stack([hl * 16, hl * 40, hl * 105], -1).astype(np.float32)
+        out = cv2.add(out, cv2.resize(hal, (W, H), interpolation=cv2.INTER_LINEAR).astype(np.uint8))
+    return out
+
+
+R2.post = post
 R2.scene_pocket = scene_pocket
 R4.scene_body = scene_body; R4.scene_spell = scene_spell
 

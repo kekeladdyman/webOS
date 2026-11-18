@@ -698,7 +698,7 @@ def post(img, t, acc, n, grain=0.085, glow0=0.10, vig=1.0, ca=True, streak=True)
         b = cv2.warpAffine(b, np.float32([[1 - e, 0, e * W / 2], [0, 1 - e, e * H / 2]]), (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT_101)
         img = cv2.merge([b, g, r])
     fl = acc["flash"]
-    if 15.40 <= t < 16.45: fl += smooth((t - 15.40) / 0.37) if t < 15.77 else 1 - smooth((t - 15.77) / 0.68)
+    if 15.40 <= t < 16.20: fl += smooth((t - 15.40) / 0.37) if t < 15.77 else 1 - smooth((t - 15.77) / 0.43)      # v10: shorter white-out
     if 16.67 <= t < 17.0: fl += 0.35 * (1 - (t - 16.67) / 0.33)
     if 5.86 <= t < 6.06: fl += 0.75 * (1 - (t - 5.86) / 0.20)
     if tl.CHORUS <= t < tl.CHORUS + 0.3: fl += 0.55 * (1 - (t - tl.CHORUS) / 0.3)

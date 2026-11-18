@@ -156,6 +156,17 @@ def render_shot(shot, t, acc=ZERO_ACC, size=None, want_matte=False, zmul=1.0, t_
     if amp > 0.5: zoom = max(zoom, 1.0 + 2.4 * amp / ow + 0.004)
     zoom = max(zoom, 1.0)
     img = apply_grade(warp(fr[fi], zoom, cx, cy, rot, dx, dy, ow, oh), shot["grade"])
+    if shot.get("par") and size is None and not want_matte and not raw:      # v7: 2.5D parallax - the figure pushes toward camera, background softens
+        ms = CLIPS.matte(shot)
+        if ms is not None:
+            m = warp(ms[min(fi, len(ms) - 1)], zoom, cx, cy, rot, dx, dy, ow, oh, interp=cv2.INTER_LINEAR)
+            M_ = cv2.moments(m, binaryImage=False)
+            if M_["m00"] > 255 * 400:
+                gx, gy = M_["m10"] / M_["m00"], M_["m01"] / M_["m00"]; par, dof = shot["par"]
+                s_ = 1.0 + par * smooth(u); fgi = zoom_at(img, s_, gx, gy, gx, gy - par * 0.35 * H * smooth(u)); fgm = zoom_at(m, s_, gx, gy, gx, gy - par * 0.35 * H * smooth(u))
+                sig_ = dof * K * (0.35 + 0.65 * smooth(u))
+                img = cv2.GaussianBlur(img, (0, 0), sig_) if sig_ > 0.3 else img.copy()
+                comp_matte(img, fgi, fgm)
     if shot.get("ink") and not raw: img = ink(img, shot["ink"], shot.get("ink_pct", 58))
     if shot["impact"] and 0 <= t - shot["t0"] < 3.2 / 60.0 and size is None:
         g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY); thr = float(np.percentile(g[::8, ::8], 62)); m = g > thr

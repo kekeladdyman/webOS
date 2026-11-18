@@ -93,7 +93,7 @@ def stare_down(t, top, bot, ft, fb, t0, beat2):
         if t >= beat2 and t - beat2 < 3.2 / 60:                          # palette snaps on the second beat
             img = ink(render_shot(shot, t, raw=True), "red" if side > 0 else "bw", 50)
         else: img = fr(shot, t)
-        s_ = 1.75 * (1 + 0.06 * hit) * (1 + 0.035 * (t - t0))
+        s_ = 2.15 * (1 + 0.06 * hit) * (1 + 0.035 * (t - t0))                # v10: closer on the eyes
         img = zoom_at(img, s_, f[0] * W, f[1] * H, W * 0.5 - side * (t - t0) * 30 * K, H * (0.25 if side < 0 else 0.75), reflect=True)
         if side < 0: pts = [(0, 0), (W, 0), (W, ym - sk - gap), (0, ym + sk - gap)]
         else: pts = [(0, ym + sk + gap), (W, ym - sk + gap), (W, H), (0, H)]

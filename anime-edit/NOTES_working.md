@@ -256,3 +256,8 @@ BRIEF (all user requests): song uninterrupted; dialogue like MARATHON; reference
   eyes, frame_lines() MARATHON border, zoom fall into drop.
 - v5: audio6: rfx() reversed whoosh into logo O, sparkle 12.20, light 15.33, chime 16.45, whine() 21.34-22.05; effects bus low shelf -4.5dB<120Hz + HPF 32Hz
   (limiter GR 1.23 -> 0.28 dB).
+- v6: velocity ramps speed=[(0,0.55),(0.55,0.85),(1,2.3)] on I3 I5 I8 I9 I10 L2 L3 L5 S1 S2 S3; E3 ss 761.05 (Misaki smile).
+- v7: r2core.render_shot shot["par"]=(push, dof): 2.5D parallax via matte centroid zoom + bg blur; on G1 (0.06,2.4) and E2b (0.07,1.8, matte=True).
+- v8: tl4.FLASH subliminal frames X1 1.51 skull, X2 3.42 Shagrua eye red, X3 4.88 Polka Evil Eye (render6.scene_film); splice ticks; NOTHING MORE x 0.475pw.
+- v9: render6.ring_text(): incantation ring (W6["ring"] Newsreader 520) on R1 reincarnation circle 15.80-16.95 at 0.64*r, dark band, follows circle_match onto the eye.
+- v10: white-out 15.40-16.20; stare-down zoom 2.15; HIGH sc 0.62; render6.post() wraps R2.post: halation on colour scenes (thr 218, (16,40,105)).

@@ -182,6 +182,8 @@ fx(2350, 12.20, -24, align="start", maxd=0.6, fo=0.2)            # through Shagr
 fx(2588, 15.33, -24, align="on", maxd=1.2, fo=0.5)               # the pillar of light
 fx(873, 16.45, -23, align="start")                               # the circle lands on his eye
 whine(21.34, 22.05)                                              # the Evil Eye rings before it opens
+for _t in (1.51, 3.42, 4.88):                                    # v8: a damaged-splice tick on each subliminal frame
+    fx(1021, _t, -27); fx(2299, _t, -27)
 # -- outro
 fx(358, 33.9, -36, align="start", maxd=3.3, fi=0.8, fo=0.8)
 # official title card: glitches in over the skyline, static, lands on white
