@@ -281,3 +281,29 @@ BRIEF (all user requests): song uninterrupted; dialogue like MARATHON; reference
 - v18: captions MARATHON-size 2-line stacks (a1 118, a2b 176), tag 84; mirror glass (seam, ripple, cold tint, skull from 31.70); S5 bar_hi, S4 battle.
 - v19: V7 dead children as floating MARATHON card (R2.card) with TEARS letters falling off its edge.
 - v20: flash tuning (24.79/26.70 -> 0.12/0.10, 30.55 -> 0.38), L3 punch 0.5, billing block larger. Deliverables: rounds/DMDP_experiment_v20.mp4 + v20_MASTER.mp4.
+
+# ===================== V8 / v21 (user feedback 6, 2026-11-18) =====================
+User: "sound effects sometimes ruin it ... like some sparkle playing in the middle of a trailer ... make sure it fits the song or enhance it, add a part
+to the song like bass to that transition"; "the edit doesn't fit the vibe compared to my references"; "my fonts are horrible ... give me better fonts first";
+"the edits just grab the whole scene ... edit so much it doesn't feel like the original anime clip, use all the tricks, even manga scenes, make them move,
+clip them and tween them, you can do that to the characters too".
+- Fonts first: fontboard.py -> out/fontboard_1.jpg / _2.jpg (12 options on DMDP frames). Going with 1 2 4 6 7 8 9 10 (user may swap):
+  1 TeX Gyre Heros Cn Bold teal 3D glow (UNMASKED, DEMONS) | 2 TeX Gyre Heros Cn Bold Italic brushed metal (FACE) | 4 Barlow Cond Black Italic VRENS
+  (WHAT?, FACE/TO/FACE, VS, signature) | 6 Cabinet Grotesk Black giant metal (ARMAGEDDON, MASK) | 7 TeX Gyre Heros Bold + Cn TOJI card (POLKA SHINOYAMA)
+  | 8 Libre Bodoni Bold Italic red KATON card (NECROMANCER) | 9 Big Shoulders Stencil MARATHON (SYNTHETIC at the drop) | 10 Zodiak Thin/Light chartreuse
+  (all dialogue + lyric captions, narration boxes). fxtype.py = metal3d / chrome / vrens / flat treatments.
+- fxcomp.py: manga() ink + screentone, duotone, tone_bg / radial_tone, focus_lines (on twos), speed_lines, panel(), fit_into, sticker() outlines,
+  tint echoes, strips(), Dissolve (dot particles), impact_frames, kf() tweens.
+- tl8.py (superset of tl7) + render8.py: intro = manga page (3 panels slam in, narration boxes, colour floods into Polka at "Shinoyama", he breaks out
+  of his panel, camera pushes into his shirt -> logo); verse = skull duotone + ゴゴゴ, FACE metal behind skull cut-out, VS split face-to-face, knight
+  manga panel breakout, Misaki sticker + UNMASKED, ARMAGEDDON in sliced strips, TEARS MARATHON card, violet army spread, DEMONS in eye slit, iris dive;
+  drop = manga page assembling on the 3-3-2 bass, page tears to the dragon, ring + circle match, eye sticker, ghost duotone, Polka cut from inked crowd,
+  Lemmings red duotone stutter, shatter, VS, shout sticker, sliced violet, spell speed lines, mirrored circles, NECROMANCER card, Corpse God panel,
+  red-eye slit, finale echoes + TOJI card; outro = mirror with inked reflection, tilted card lyric, dot dissolve on "disappeared", MASK behind the hood,
+  face shrinks to one panel; tag in cinemascope panel with Zodiak captions; official end card.
+- Mattes: prep8.py re-mattes dark shots on a brightened copy (PF L5 S4 D10 D2b) or luminance-keys them (V2 skull, W1 bandaged face). D10 speed 0.30.
+- audio8.py: song in C# minor, bass walks A-G#-C#-D#/E (song2/bassnotes.json per beat). 808s tuned to the bass note under each hit (+ sidechain on the
+  song's lows), reverse-reverb swells made from the song's next beat, tempo-synced riser + drum-stem roll into the drop, dotted-8th delay throws on
+  every "What?", vocal stutter on "recognize", C# drone under Lisa, sub drops. No Mixkit library sounds at all.
+- Run: TLMOD=tl8 python prep2.py; python prep8.py; python audio8.py; python render8.py final; mux (see round8.sh). Debug: TS=.. OUT=.. python dbg8.py draft
+- Deliverable: rounds/DMDP_experiment_v21.mp4 (47.4 s, -14.1 LUFS, -1.0 dBFS peak, no black frames).
