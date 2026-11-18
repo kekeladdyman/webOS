@@ -30,7 +30,7 @@ S("A1", 0.00, 2.02, 2, 3.4, z=(1.02, 1.12), grade="past", mode="film")
 S("A2", 2.02, 3.92, 2, 64.7, z=(1.12, 1.03), grade="past", mode="film")
 S("A3", 3.92, 5.86, 2, 21.9, z=(1.03, 1.18), pan=((0.5, 0.5), (0.50, 0.44)), grade="past", mode="film")
 # B. title footage (inside the letters, then full frame)
-S("B", 5.86, 8.22, 1, 1279.3, z=(1.02, 1.10), grade="battle", mode="title", shake=0.3)
+S("B", 5.86, 8.22, 1, 1370.48, z=(1.0, 1.0), grade="raw", mode="title")       # OFFICIAL logo build: DEAD / MOUNT / DEATH / full
 # C. verse — full-frame punches <-> floating bordered cards
 S("C1", 8.22, 9.10, 1, 120.3, speed=[(0, 1.7), (0.45, 0.75), (1, 0.9)], z=(1.12, 1.03), grade="battle", punch=0.8, matte=True)
 S("C2", 9.10, 10.08, 1, 154.15, speed=0.80, z=(1.02, 1.08), grade="battle", mode="card")
@@ -58,25 +58,27 @@ S("PH1", 22.04, 25.80, 1, 678.6, z=(1.08, 1.08), grade="city", mode="photo")
 S("PH2", 23.22, 25.80, 1, 760.2, z=(1.02, 1.02), grade="city", mode="photo", matte=True)
 S("PH3", 24.15, 25.80, 1, 914.0, z=(1.06, 1.06), grade="night", mode="photo")
 S("PH4", 25.10, 25.80, 1, 1275.2, z=(1.04, 1.04), grade="battle", mode="photo")
-S("E6", 25.80, 26.47, 1, 1090.25, z=(1.04, 1.20), grade="battle", punch=1.0)
-S("E7", 26.47, 27.38, 1, 1147.9, z=(1.10, 1.02), grade="battle", punch=0.9)
-S("E8", 27.38, 27.84, 12, 964.4, z=(1.03, 1.12), grade="night", punch=0.8)
-S("E9", 27.84, 28.31, 1, 1155.9, speed=0.9, z=(1.10, 1.03), grade="battle", punch=1.0)
-S("E10", 28.31, 28.55, 1, 1151.3, z=(1.03, 1.10), grade="battle", punch=0.8)
+# the cafe: Lemmings (E04 reveal + E05 bar fight)
+S("L1", 25.80, 26.47, 4, 1321.6, z=(1.04, 1.20), grade="night", punch=1.0)                 # Lemmings revealed
+S("L2", 26.47, 26.91, 5, 91.62, z=(1.10, 1.02), grade="bar", punch=0.9)                    # bandaged fist catches the blow
+S("L3", 26.91, 27.38, 5, 324.72, z=(1.03, 1.12), grade="bar", punch=0.8)                   # Misaki, caught
+S("L4", 27.38, 27.84, 5, 112.90, z=(1.10, 1.02), grade="bar", punch=0.9)                   # Polka lunges
+S("L5", 27.84, 28.31, 5, 341.10, speed=0.95, z=(1.03, 1.12), grade="night", punch=1.0)                 # the ghosts that haunt Lemmings
+S("L6", 28.31, 28.55, 5, 297.95, z=(1.10, 1.03), grade="night", punch=0.9)                 # first circle
 # P. pocket: "I'll protect you, no matter what."
-S("P1", 28.55, 29.62, 5, 1076.4, speed=0.9, z=(1.04, 1.10), grade="city", mode="card", matte=True)
-S("P2", 29.62, 30.50, 12, 1126.0, z=(1.04, 1.26), pan=((0.5, 0.5), (0.44, 0.47)), grade="night", mode="card")
-# F. chorus
-S("F1", 30.50, 30.96, 12, 1189.7, z=(1.22, 1.06), grade="night", punch=1.4, impact=True, shake=0.6)
-S("F2", 30.96, 31.44, 12, 1055.9, z=(1.04, 1.18), grade="night", punch=1.2, impact=True, shake=0.6)
-S("F3", 31.44, 31.89, 12, 1169.6, speed=1.8, z=(1.18, 1.04), grade="night", punch=1.2, impact=True, shake=0.6)
-S("F4", 31.89, 32.44, 1, 459.25, z=(1.04, 1.16), grade="battle", punch=1.4, impact=True, shake=0.6)
-S("F5a", 32.44, 32.64, 1, 400.48, z=(1.14, 1.04), grade="battle", punch=1.0, shake=0.6)
-S("F5b", 32.64, 32.83, 1, 1290.56, z=(1.04, 1.14), grade="battle", punch=1.0, shake=0.6)
-S("F6", 32.83, 33.95, 1, 1392.8, z=(1.16, 1.04), grade="battle", punch=1.4, impact=True, matte=True)
+S("P1", 28.55, 29.62, 5, 327.3, speed=0.9, z=(1.04, 1.10), grade="bar_hi", mode="card")       # Misaki in Lemmings' grip
+S("P2", 29.62, 30.50, 5, 388.95, speed=0.75, z=(1.04, 1.22), grade="bar", mode="card")                 # Polka's eyes
+# F. chorus = the spell in the bar
+S("F1", 30.50, 30.96, 5, 394.72, z=(1.22, 1.06), grade="night", punch=1.4, impact=True, shake=0.6)   # energy burst
+S("F2", 30.96, 31.44, 5, 397.2, z=(1.04, 1.18), grade="night", punch=1.2, impact=True, shake=0.6)    # circle array
+S("F3", 31.44, 31.89, 5, 410.2, z=(1.18, 1.04), grade="bar", punch=1.2, impact=True, shake=0.6)      # giant skeleton rises in the bar
+S("F4", 31.89, 32.44, 5, 131.55, z=(1.04, 1.16), grade="night", punch=1.4, impact=True, shake=0.6)   # the Corpse God's true form
+S("F5a", 32.44, 32.64, 5, 403.0, z=(1.14, 1.04), grade="night", punch=1.0, shake=0.6)                # white burst
+S("F5b", 32.64, 32.83, 5, 414.05, z=(1.04, 1.14), grade="bar", punch=1.0, shake=0.6)                 # red eyes
+S("F6", 32.83, 33.95, 5, 405.95, z=(1.16, 1.04), grade="night", punch=1.4, impact=True, matte=True)  # Polka in the blue light
 # G. outro
 S("G1", 33.60, 36.25, 1, 682.9 - (DLG_CLOSE_T - 33.60), z=(1.03, 1.09), grade="city", fin=0.35, matte=True)
-S("G2", 35.85, 37.15, 1, 1265.9, z=(1.10, 1.03), grade="city", fin=0.4, fout=0.5)
+S("G2", 35.85, 39.3, 1, 1295.9, speed=1.40, z=(1.0, 1.0), grade="raw", mode="endlogo", fin=0.4)   # OFFICIAL title card (played backwards)
 
 
 def letterbox(t):
@@ -94,4 +96,5 @@ def letterbox(t):
     if t < 28.55: return 0.094
     if t < CHORUS: return 0.0           # pocket card on black
     if t < 33.30: return 0.0
-    return lerp(0.0, 0.128, (t - 33.30) / 0.7)
+    if t < 36.55: return lerp(0.0, 0.128, (t - 33.30) / 0.7)
+    return lerp(0.128, 0.0, (t - 36.55) / 0.30)       # bars open for the logo

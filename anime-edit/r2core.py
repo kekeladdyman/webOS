@@ -41,6 +41,9 @@ def make_grade(contrast=1.0, pivot=0.45, lift=(0, 0, 0), gain=(1, 1, 1), gamma=1
 
 
 GRADES = {
+    "raw": make_grade(),
+    "bar_hi": make_grade(contrast=1.18, pivot=0.40, lift=(16, 6, 8), gain=(1.08, 1.02, 1.02), gamma=0.60, sat=1.20),
+    "bar": make_grade(contrast=1.16, pivot=0.40, lift=(14, 4, 6), gain=(1.06, 1.0, 1.0), gamma=0.72, sat=1.22),
     "past": make_grade(contrast=1.04, lift=(8, 9, 12), gain=(0.90, 0.97, 1.02), sat=0.72),
     "battle": make_grade(contrast=1.13, lift=(9, 2, 4), gain=(1.02, 1.0, 1.0), sat=1.15),
     "night": make_grade(contrast=1.14, lift=(8, 2, 3), gain=(1.04, 1.02, 1.02), gamma=0.88, sat=1.18),

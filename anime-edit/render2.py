@@ -41,29 +41,9 @@ class Assets:
         rng = np.random.default_rng(11)
         nz = cv2.GaussianBlur(rng.random((H // 8, W // 8)).astype(np.float32), (0, 0), 5)
         nz = (nz - nz.min()) / (nz.max() - nz.min()); s.burn = cv2.resize(nz, (W, H), interpolation=cv2.INTER_CUBIC)
-        # ---- title
-        s.MS = 6 if MODE == "final" else 4
-        ft = font("Anton.ttf", 330 * k * s.MS)
-        def tm(t):
-            ws = [ft.getlength(c) for c in t]; asc, desc = ft.getmetrics(); tr = 4 * k * s.MS
-            im = Image.new("L", (int(sum(ws) + tr * len(t) + 40), int(asc + desc + 40)), 0); d = ImageDraw.Draw(im); x = 20
-            for c, cw in zip(t, ws): d.text((x, 20), c, font=ft, fill=255); x += cw + tr
-            a = np.array(im); ys, xs = np.where(a > 8); return a[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
-        l1, l2 = tm("DEAD MOUNT"), tm("DEATH PLAY"); tw = int(W * 0.80 * s.MS)
-        l1 = cv2.resize(l1, (tw, int(l1.shape[0] * tw / l1.shape[1])), interpolation=cv2.INTER_AREA)
-        l2 = cv2.resize(l2, (tw, int(l2.shape[0] * tw / l2.shape[1])), interpolation=cv2.INTER_AREA)
-        gap = int(26 * k * s.MS); th = l1.shape[0] + gap + l2.shape[0]
-        s.title = np.zeros((H * s.MS, W * s.MS), np.uint8); x0 = (W * s.MS - tw) // 2; y0 = (H * s.MS - th) // 2
-        s.title[y0:y0 + l1.shape[0], x0:x0 + tw] = l1; s.title[y0 + l1.shape[0] + gap:y0 + th, x0:x0 + tw] = l2
-        sm = cv2.resize(s.title, (W, H), interpolation=cv2.INTER_AREA)
-        dist = cv2.distanceTransform((sm > 128).astype(np.uint8), cv2.DIST_L2, 5)
-        yy, xx = np.mgrid[0:H, 0:W]; sc = dist - 0.02 * np.hypot(xx - W / 2, yy - H / 2)
-        iy, ix = np.unravel_index(np.argmax(sc), sc.shape); s.zc = (float(ix), float(iy)); s.zdist = float(dist[iy, ix])
+        # ---- micro type helper (the title is the official logo footage, nothing custom)
         mono = lambda t, sz=16: layer(tmask(t, "SpaceMono.ttf", sz * k, tracking=3.2 * k), fill=BONE)
-        s.mono = mono
-        s.t_tl = mono("THE CORPSE GOD  —  REEL 01"); s.t_tr = mono("ANOTHER WORLD  →  SHINJUKU")
-        s.t_bl = mono("AIN'T NO MOUNTAIN HIGH ENOUGH  ·  1967"); s.t_kj = layer(tmask("屍神殿", "ZenAntique.ttf", 30 * k, tracking=6 * k), fill=BONE)
-        s.t_kata = layer(tmask("デッドマウント・デスプレイ", "DelaGothicOne.ttf", 26 * k, vertical=True, line_gap=4 * k), fill=BONE)
+        s.mono = mono; s.logo_steps = None
         # ---- lyric type
         sc_ = "MrDafoe.ttf"; se = "InstrumentSerif.ttf"; si = "InstrumentSerifItalic.ttf"
         sh = (9 * k, 0.55, 0, 5 * k)
@@ -91,7 +71,7 @@ class Assets:
         s.lab_other = (layer(tmask("異世界", "ZenAntique.ttf", 30 * k, tracking=4 * k), fill=BONE), mono("ANOTHER WORLD", 15))
         s.lab_shin = (layer(tmask("新宿", "ZenAntique.ttf", 30 * k, tracking=4 * k), fill=BONE), mono("SHINJUKU", 15))
         s.card_labels = {"C2": mono("EP.01  ·  02:34  ·  THE CORPSE GOD", 14), "C4": mono("EP.01  ·  08:34  ·  KORMINE", 14),
-                         "C6": mono("EP.01  ·  03:25  ·  THE CALAMITY CRUSHER", 14), "P": mono("EP.05  ·  17:58  ·  SHINJUKU", 14)}
+                         "C6": mono("EP.01  ·  03:25  ·  THE CALAMITY CRUSHER", 14), "P": mono("EP.05  ·  05:27  ·  THE BAR", 14)}
         s.card_idx = {"C2": mono("N° 01 / 03", 14), "C4": mono("N° 02 / 03", 14), "C6": mono("N° 03 / 03", 14), "P": mono("N° 00", 14)}
         s.frame_cache = {}
         # ---- polaroids
@@ -120,20 +100,8 @@ class Assets:
         s.c_mount = layer(tmask("MOUNTAIN", sk, 262 * k, tracking=2 * k), grad=(GOLD, BONE), stroke=(DEEP, 4 * k), extrude=ex(14))
         s.c_high = layer(tmask("HIGH", sk, 520 * k), grad=(BONE, GOLD), stroke=(DEEP, 5 * k), extrude=ex(16))
         s.c_enough = layer(tmask("ENOUGH", "GrenzeGotisch.ttf", 470 * k, wght=900, tracking=4 * k), fill=RED, stroke=(BONE, 4 * k), extrude=(12, 1.2 * k, 1.2 * k, (14, 4, 30)))
-        # ---- end title
-        g = "GrenzeGotisch.ttf"
-        s.e1 = layer(tmask("Dead Mount", g, 200 * k, wght=900, tracking=2 * k), fill=BONE); s.e2 = layer(tmask("Death Play", g, 200 * k, wght=900, tracking=2 * k), fill=BONE)
-        s.e3 = layer(tmask("デッドマウント・デスプレイ", "ZenAntique.ttf", 30 * k, tracking=16 * k), fill=BONE)
-        s.e4 = mono("AN EDIT   ·   AIN'T NO MOUNTAIN HIGH ENOUGH", 15)
-        sz = int(210 * k); seal = np.zeros((sz, sz), np.uint8); cv2.rectangle(seal, (0, 0), (sz - 1, sz - 1), 255, -1)
-        kj = tmask("\u5c4d\u795e\u6bbf", "ZenAntique.ttf", 58 * k, vertical=True, line_gap=-12 * k)
-        if kj.shape[0] > sz * 0.84: kj = cv2.resize(kj, (int(kj.shape[1] * (sz * 0.84) / kj.shape[0]), int(sz * 0.84)), interpolation=cv2.INTER_AREA)
-        y0 = (sz - kj.shape[0]) // 2; x0 = (sz - kj.shape[1]) // 2
-        seal[y0:y0 + kj.shape[0], x0:x0 + kj.shape[1]] = cv2.subtract(seal[y0:y0 + kj.shape[0], x0:x0 + kj.shape[1]], kj)
-        cv2.rectangle(seal, (int(11 * k), int(11 * k)), (sz - 1 - int(11 * k), sz - 1 - int(11 * k)), 0, max(1, int(2 * k)))
-        rough = cv2.GaussianBlur(np.random.default_rng(3).random((sz, sz)).astype(np.float32), (0, 0), 1.2 * k + 0.4)
-        seal = (seal.astype(np.float32) * np.clip((rough - 0.36) * 9 + 0.6, 0.62, 1.0)).astype(np.uint8)
-        s.seal = layer(seal, fill=(38, 22, 206))
+        s.c_en_l = layer(tmask("ENO", "GrenzeGotisch.ttf", 470 * k, wght=900, tracking=4 * k), fill=RED, stroke=(BONE, 4 * k), extrude=(12, 1.2 * k, 1.2 * k, (14, 4, 30)))
+        s.c_en_r = layer(tmask("UGH", "GrenzeGotisch.ttf", 470 * k, wght=900, tracking=4 * k), fill=RED, stroke=(BONE, 4 * k), extrude=(12, 1.2 * k, 1.2 * k, (14, 4, 30)))
         # ---- post
         rng = np.random.default_rng(7); s.noise = []
         for _ in range(6):
@@ -311,50 +279,23 @@ def scene_film(t, n):
     return canvas
 
 
-# ====================================================================== B. title
-def title_mask(t):
-    T = tl.TITLE
-    if t >= T["t_full"]: return None, 1.0
-    c = A.zc; MS = A.MS
-    if t < T["zoom_start"]:
-        u = (t - T["t0"]) / (T["zoom_start"] - T["t0"]); s = lerp(1.0, 1.09, u) * (1 + 0.07 * math.exp(-(t - T["t0"]) / 0.07)); g = 0.0; zp = 0.0
+# ====================================================================== B. title = the official logo build (footage, retimed to the beat)
+LOGO_T = (5.86, 6.32, 6.78, 7.27, 8.22)        # DEAD | MOUNT | DEATH | full logo ... hold
+
+
+def scene_logo(t, n):
+    fr = CLIPS.get(SH["B"])
+    if A.logo_steps is None:                     # the three hard changes in the source: MOUNT, DEATH, full logo
+        d = [float(np.abs(fr[i][::8, ::8].astype(np.int16) - fr[i - 1][::8, ::8]).mean()) for i in range(1, min(len(fr), 40))]
+        idx = [i + 1 for i, v in enumerate(d) if v > 60][:3]
+        A.logo_steps = [0] + idx if len(idx) == 3 else [0, 9, 18, 24]
+    st = A.logo_steps; seg = max(i for i in range(4) if t >= LOGO_T[i]); dt = t - LOGO_T[seg]
+    if seg < 3:
+        ln = st[seg + 1] - st[seg]; fi = st[seg] + min(ln - 1, int(dt / (LOGO_T[seg + 1] - LOGO_T[seg]) * ln))
     else:
-        zp = (t - T["zoom_start"]) / (T["t_full"] - T["zoom_start"]); s_end = (W * 1.3) / max(4.0, A.zdist)
-        s = 1.09 * (s_end / 1.09) ** (zp ** 1.6); g = smooth(zp * 1.4)
-    tx = c[0] - c[0] * s + (W / 2 - c[0]) * g; ty = c[1] - c[1] * s + (H / 2 - c[1]) * g
-    M = np.array([[s / MS, 0, tx], [0, s / MS, ty]], np.float32)
-    return cv2.warpAffine(A.title, M, (W, H), flags=cv2.INTER_LINEAR if s > 2 else cv2.INTER_AREA, borderValue=0), zp
-
-
-def scene_title(t, n, acc):
-    T = tl.TITLE
-    canvas = render_shot(SH["B"], t, acc)
-    m, zp = title_mask(t)
-    if m is None: return canvas
-    lift = 0.42 * (1 - zp) + 0.6 * math.exp(-(t - T["t0"]) / 0.09)
-    fill = np.empty_like(canvas); fill[:] = (150, 70, 120)
-    canvas = cv2.multiply(cv2.addWeighted(canvas, 1.0, fill, lift, 0), cv2.merge([m, m, m]), scale=1 / 255.0)
-    if zp < 0.5:
-        pm, a = layer(outline(m, 5 * K), fill=BONE); comp_pm(canvas, pm, a, 0.55 * (1 - 2 * zp))
-    # frame lines + micro type (blown outward by the zoom)
-    op = (1 - smooth(zp * 2.2)) * smooth((t - T["t0"]) / 0.25); sc = 1 + 0.5 * zp
-    if op > 0.01:
-        mx, my = W * 0.04, H * 0.065
-        u = out_cubic((t - T["t0"]) / 0.55); col = tuple(int(c * op * 0.8) for c in BONE)
-        pts = [(mx, my), (W - mx, my), (W - mx, H - my), (mx, H - my), (mx, my)]
-        per = 2 * (W - 2 * mx) + 2 * (H - 2 * my); rem = per * u
-        for (xa, ya), (xb, yb) in zip(pts, pts[1:]):
-            seg = math.hypot(xb - xa, yb - ya); f = clamp(rem / seg); rem -= seg * f
-            if f > 0:
-                P = lambda x, y: (int(W / 2 + (x - W / 2) * sc), int(H / 2 + (y - H / 2) * sc))
-                cv2.line(canvas, P(xa, ya), P(lerp(xa, xb, f), lerp(ya, yb, f)), col, max(1, int(1.5 * K)), cv2.LINE_AA)
-        o = op * 0.85
-        comp_pm(canvas, *A.t_kj, o, int(mx + 14 * K), int(my + 14 * K)); comp_pm(canvas, *A.t_tl, o, int(mx + 14 * K + A.t_kj[1].shape[1] + 14 * K), int(my + 20 * K))
-        comp_pm(canvas, *A.t_tr, o, int(W - mx - 14 * K - A.t_tr[1].shape[1]), int(my + 20 * K))
-        comp_pm(canvas, *A.t_bl, o, int(mx + 14 * K), int(H - my - 14 * K - A.t_bl[1].shape[0]))
-        tc = A.mono(f"00:00:{int(t):02d}:{int((t % 1) * 24):02d}"); comp_pm(canvas, *tc, o, int(W - mx - 14 * K - tc[1].shape[1]), int(H - my - 14 * K - tc[1].shape[0]))
-        comp_pm(canvas, *A.t_kata, o * 0.8, int(W - mx - 22 * K - A.t_kata[1].shape[1]), int(H / 2 - A.t_kata[1].shape[0] / 2))
-    return canvas
+        fi = min(len(fr) - 1, st[3] + int(dt * tl.SRC_FPS))
+    z = 1.0 + 0.035 * math.exp(-dt / 0.09) + (0.02 * dt / 0.95 if seg == 3 else 0.0)
+    return warp(fr[fi], z, 0.5, 0.5, 0.0, 0.0, 0.0, W, H)
 
 
 # ====================================================================== C. verse
@@ -653,24 +594,25 @@ def scene_pocket(t, n):
 
 
 # ====================================================================== F. chorus
-def slam(canvas, pm, a, R, cx, cy, t, t0, dz=-60, lroll=0.0, sy=1.0, grow=0.05):
+def slam(canvas, pm, a, R, cx, cy, t, t0, dz=-60, lroll=0.0, sy=1.0, grow=0.05, sc=1.0):
     dt = t - t0
     if dt < 0: return
     e = out_expo(dt / 0.11)
     for g, op in ((0.30, 0.18), (0.15, 0.32)):        # trailing ghosts
-        if e < 0.98: text_plane(canvas, pm, a, R, cx, cy, dz, lerp(1.7, 1.0, clamp(e - g * (1 - e))), op * (1 - e), lroll=lroll, sy=sy)
-    text_plane(canvas, pm, a, R, cx, cy, dz, lerp(1.7, 1.0, e) * (1 + grow * dt), clamp(dt / 0.03), lroll=lroll, sy=sy)
+        if e < 0.98: text_plane(canvas, pm, a, R, cx, cy, dz, sc * lerp(1.7, 1.0, clamp(e - g * (1 - e))), op * (1 - e), lroll=lroll, sy=sy)
+    text_plane(canvas, pm, a, R, cx, cy, dz, sc * lerp(1.7, 1.0, e) * (1 + grow * dt), clamp(dt / 0.03), lroll=lroll, sy=sy)
 
 
 def scene_chorus(t, n, acc):
-    if t >= SH["F6"]["t0"]:                           # ENOUGH behind Polka (2.5D)
+    if t >= SH["F6"]["t0"]:                           # the last word sits BEHIND Polka (cut-out)
         s = SH["F6"]; dt = t - s["t0"]
-        img = render_shot(s, t, acc); canvas = img.copy()
+        canvas = render_shot(s, t, acc).copy()
         fg, m = render_shot(s, t, acc, want_matte=True, zmul=1.045)
-        e = out_expo(dt / 0.12); pm, a = A.c_enough; j = 6 * K * math.exp(-dt / 0.25)
-        if m is not None:
-            canvas = cv2.convertScaleAbs(canvas, alpha=0.72); comp_matte(canvas, fg, m)      # he floats over a dimmed background
-        put(canvas, pm, a, W * 0.5 + j * noise1(t * 3, 1), H * 0.745 + j * noise1(t * 3, 4), scale=lerp(1.5, 1.0, e) * 0.92 * (1 + 0.035 * dt), rot=-3, opacity=clamp(dt / 0.03) * clamp((s["t1"] - t) / 0.3))
+        e = out_expo(dt / 0.12); j = 6 * K * math.exp(-dt / 0.25); sc_ = lerp(1.5, 1.0, e) * 0.86 * (1 + 0.035 * dt)
+        for (pm, a), sg in ((A.c_en_l, -1), (A.c_en_r, 1)):       # the word splits around his head, tucked behind him
+            cx = W * 0.5 + sg * W * (0.292 + 0.10 * (1 - e)); cy = H * 0.345 - sg * W * 0.292 * 0.052
+            put(canvas, pm, a, cx + j * noise1(t * 3, 1), cy + j * noise1(t * 3, 4), scale=sc_, rot=-3, opacity=clamp(dt / 0.03) * clamp((33.60 - t) / 0.22))
+        if m is not None: comp_matte(canvas, fg, m)
         return canvas
     canvas = full(t, acc)
     if t < 30.96:
@@ -684,22 +626,35 @@ def scene_chorus(t, n, acc):
         slam(canvas, pm, a, R, W * 0.5, H * 0.60 - dt * 90 * K, t, 31.44, dz=0, sy=1.9)
     elif t < 32.44:
         dt = t - 31.89; pm, a = A.c_high
-        slam(canvas, pm, a, Rmat(-22, 0, 0), W * 0.60, H * 0.52 - out_cubic(dt / 0.5) * H * 0.10, t, 31.89, lroll=3, sy=1 + 0.5 * out_cubic(dt / 0.45))
+        slam(canvas, pm, a, Rmat(24, 0, 0), W * 0.205, H * 0.56 - out_cubic(dt / 0.5) * H * 0.07, t, 31.89, lroll=-4, sy=1 + 0.9 * out_cubic(dt / 0.45), sc=0.46)   # beside the true form, stretching tall
     return canvas
 
 
 # ====================================================================== G. outro + end title
+END_MAP = [(35.85, 1300.90), (36.85, 1300.00), (36.85, 1299.80), (37.45, 1297.52), (37.45, 1297.45), (37.55, 1297.27), (37.55, 1297.14), (39.30, 1296.00)]
+
+
+def end_logo_frame(t):
+    """the official title card, played backwards: Shinjuku skyline -> logo glitches in -> static -> logo on white."""
+    s = SH["G2"]; fr = CLIPS.get(s); src = END_MAP[0][1] if t < END_MAP[0][0] else END_MAP[-1][1]
+    for (ta, sa), (tb, sb) in zip(END_MAP, END_MAP[1:]):
+        if ta <= t < tb: src = lerp(sa, sb, (t - ta) / (tb - ta)); break
+    fi = max(0, min(len(fr) - 1, int(round((src - s["ss"]) * tl.SRC_FPS))))
+    z = 1.0 + 0.03 * (1 - smooth((t - 35.85) / 1.0))
+    return warp(fr[fi], z, 0.5, 0.5, 0.0, 0.0, 0.0, W, H)
+
+
 def scene_outro(t, n, acc):
-    s = SH["G1"]
-    canvas = np.zeros((H, W, 3), np.uint8); act = [x for x in (SH["F6"], SH["G1"], SH["G2"]) if x["t0"] <= t < x["t1"]]
-    g1 = None
-    for i, x in enumerate(act):
-        if x is SH["G1"]: img, g1m = render_shot(x, t, acc, want_matte=True); g1 = (img, g1m)
-        else: img = render_shot(x, t, acc)
-        a = clamp((t - x["t0"]) / x["fin"]) if x["fin"] > 0 else 1.0
-        if i == len(act) - 1 and x["fout"] > 0: a *= clamp((x["t1"] - t) / x["fout"])
+    canvas = np.zeros((H, W, 3), np.uint8); g1 = None
+    if t < SH["F6"]["t1"]: canvas = render_shot(SH["F6"], t, acc)
+    if SH["G1"]["t0"] <= t < SH["G1"]["t1"]:
+        img, g1m = render_shot(SH["G1"], t, acc, want_matte=True); g1 = (img, g1m)
+        a = clamp((t - SH["G1"]["t0"]) / SH["G1"]["fin"])
         canvas = img.copy() if a >= 0.999 else cv2.addWeighted(canvas, 1 - a, img, a, 0)
-    fo = clamp((36.95 - t) / 0.35)
+    if t >= SH["G2"]["t0"]:
+        img = end_logo_frame(t); a = clamp((t - SH["G2"]["t0"]) / 0.4)
+        canvas = img.copy() if a >= 0.999 else cv2.addWeighted(canvas, 1 - a, img, a, 0)
+    fo = clamp((36.85 - t) / 0.30)
     if t >= 35.57 and fo > 0:                         # "peaceful." tucked behind him
         dt = t - 35.57; e = out_expo(dt / 0.22); pm, a = A.peaceful
         put(canvas, pm, a, W * 0.685, H * 0.60 + (1 - e) * 30 * K, scale=lerp(0.9, 1.0, e) * (1 + 0.02 * dt), rot=-4, opacity=clamp(dt / 0.12) * fo)
@@ -719,32 +674,19 @@ def scene_outro(t, n, acc):
     return canvas
 
 
-def end_title(canvas, t):
-    E = tl.END_TITLE
-    if t < E["t0"]: return
-    a_ = min(smooth((t - E["t0"] - 0.15) / 0.45), smooth((E["t1"] - 0.25 - t) / 0.5))
-    if a_ <= 0: return
-    cy = H * 0.455
-    put(canvas, *A.e1, W / 2, cy - 92 * K, opacity=a_); put(canvas, *A.e2, W / 2, cy + 92 * K, opacity=a_)
-    put(canvas, *A.e3, W / 2, cy + 226 * K, opacity=a_ * 0.75); put(canvas, *A.e4, W / 2, H * 0.90, opacity=a_ * 0.6)
-    if t >= E["stamp"]:
-        dt = t - E["stamp"]; e = out_expo(dt / 0.10); pm, a = A.seal
-        put(canvas, pm, a, W / 2 + 590 * K, cy + 140 * K, scale=lerp(1.9, 1.0, e), rot=-7, opacity=clamp(dt / 0.03) * a_)
-
-
 # ====================================================================== post + dispatch
-def post(img, t, acc, n, grain=0.085, glow0=0.10):
+def post(img, t, acc, n, grain=0.085, glow0=0.10, vig=1.0, ca=True):
     ga = glow0 + acc["glow"]
     sm = cv2.resize(img, (W // 4, H // 4), interpolation=cv2.INTER_AREA)
     br = cv2.subtract(sm, np.full_like(sm, 140))
     bl = cv2.GaussianBlur(br, (0, 0), W / 4 * 0.022)
     img = cv2.addWeighted(img, 1.0, cv2.resize(bl, (W, H), interpolation=cv2.INTER_LINEAR), ga * 2.2, 0)
-    if 7.76 <= t < 15.5 or 25.8 <= t < 33.6:           # anamorphic streak on the magic
+    if 8.22 <= t < 15.5 or 25.8 <= t < 33.6:           # anamorphic streak on the magic
         st = cv2.blur(cv2.subtract(sm, np.full_like(sm, 185)), (int(W / 4 * 0.42) | 1, 1))
         st = cv2.multiply(st, np.full_like(st, (255, 170, 120)), scale=1 / 255.0)
         img = cv2.addWeighted(img, 1.0, cv2.resize(st, (W, H), interpolation=cv2.INTER_LINEAR), 1.5, 0)
     e = (0.7 + acc["rgb"]) * 0.0011
-    if e > 0.0004 and t >= 5.86:
+    if e > 0.0004 and t >= 5.86 and ca:
         b, g, r = cv2.split(img)
         r = cv2.warpAffine(r, np.float32([[1 + e, 0, -e * W / 2], [0, 1 + e, -e * H / 2]]), (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT_101)
         b = cv2.warpAffine(b, np.float32([[1 - e, 0, e * W / 2], [0, 1 - e, e * H / 2]]), (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT_101)
@@ -760,13 +702,14 @@ def post(img, t, acc, n, grain=0.085, glow0=0.10):
         if 22.0 < t < 25.6 and 0 <= d < 0.10: fl += 0.22 * (1 - d / 0.10)       # camera flash as each photo lands
     if fl > 0.004: img = cv2.addWeighted(img, 1.0, np.full_like(img, 255), min(fl, 1.0), 0)
     img = cv2.addWeighted(img, 1.0, A.noise[(n // max(1, FPS // 24)) % 6], grain, -128 * grain)
-    return cv2.multiply(img, A.vig, scale=1 / 255.0)
+    if vig <= 0.001: return img
+    return cv2.multiply(img, A.vig if vig >= 0.999 else cv2.addWeighted(A.vig, vig, np.full_like(A.vig, 255), 1 - vig, 0), scale=1 / 255.0)
 
 
 def frame_at(n):
-    t = n / FPS; acc = accents(t); grain = 0.085
+    t = n / FPS; acc = accents(t); grain = 0.085; glow0 = 0.10; vig = 1.0; ca = True
     if t < 5.86: canvas = scene_film(t, n); acc = ZERO_ACC; grain = 0.19
-    elif t < 8.22: canvas = scene_title(t, n, acc)
+    elif t < 8.22: canvas = scene_logo(t, n); acc = ZERO_ACC; glow0 = 0.0; vig = 0.0; ca = False; grain = 0.05      # the logo stays clean
     elif t < 15.77: canvas = scene_verse(t, n, acc)
     elif t < 21.34: canvas = scene_d(t, n, acc)
     elif t < 22.04: canvas = full(t, acc)
@@ -774,11 +717,13 @@ def frame_at(n):
     elif t < 28.55: canvas = scene_action(t, n, acc)
     elif t < tl.CHORUS: canvas = scene_pocket(t, n)
     elif t < 33.60: canvas = scene_chorus(t, n, acc)
-    else: canvas = scene_outro(t, n, acc)
-    canvas = post(canvas, t, acc, n, grain)
+    else:
+        canvas = scene_outro(t, n, acc)
+        if t >= 36.85: vig = clamp((37.45 - t) / 0.6); glow0 = 0.10 * vig; ca = t < 37.45; grain = 0.085 if t < 37.45 else 0.05
+    canvas = post(canvas, t, acc, n, grain, glow0, vig, ca)
     bar = int(round(tl.letterbox(t) * H))
     if bar > 0: canvas[:bar] = 0; canvas[H - bar:] = 0
-    end_title(canvas, t)
+    if t > tl.END - 0.30: canvas = cv2.convertScaleAbs(canvas, alpha=clamp((tl.END - t) / 0.30))
     return canvas
 
 

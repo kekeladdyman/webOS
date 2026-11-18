@@ -113,8 +113,12 @@ C = tl.CHORUS
 projector(0.0, 5.86); fx(1105, 2.02, -26); fx(1105, 3.92, -26); fx(1157, 3.5, -31, align="start", maxd=2.36, fi=1.2, fo=0.08)
 fx(1349, 5.38, -27, align="start", maxd=0.5, fi=0.25, fo=0.05)
 # -- title
-fx(2909, 5.86, -20, maxd=3.2, fo=1.4); fx(546, 5.86, -23, maxd=2.5, fo=1.0); boom(5.855, f0=64, f1=38, dur=0.7, level=-18.0)
-fx(790, 7.76, -25); fx(1492, 7.62, -24); fx(773, 7.76, -23, maxd=1.6, fo=0.8)
+# official logo build: DEAD (5.86) / MOUNT (6.32) / DEATH (6.78) / full logo (7.27)
+fx(546, 5.86, -22, maxd=1.6, fo=0.7); fx(1031, 5.86, -26)
+fx(2299, 6.32, -22); fx(1021, 6.32, -26)
+fx(2299, 6.78, -21); fx(1031, 6.78, -26)
+fx(2909, 7.27, -20, maxd=2.4, fo=1.1); fx(773, 7.27, -23, maxd=1.4, fo=0.7); boom(7.265, f0=64, f1=38, dur=0.7, level=-18.0)
+fx(1492, 8.20, -25)
 # -- verse
 fx(2798, 8.22, -21); fx(1472, 8.22, -25)
 fx(1466, 9.10, -22); fx(779, 9.10, -22, maxd=1.8, fo=0.9); fx(1464, 9.58, -26)
@@ -132,20 +136,25 @@ fx(2299, 21.34, -25)
 # -- polaroids: shutter + paper + marker
 for L_, sh_ in zip((22.04, 23.22, 24.15, 25.10), (1133, 1438, 1430, 1440)):
     fx(sh_, L_, -20); fx(1530, L_ + 0.03, -25); fx(2369, L_ + 0.24, -26, align="start")
-fx(1492, 25.78, -22); fx(2629, 25.82, -23, maxd=1.6); fx(2299, 25.80, -22)
-fx(879, 26.47, -22, align="on", maxd=1.7, fo=0.5); fx(1473, 27.38, -23)
-fx(2303, 27.82, -22, maxd=0.9); fx(1685, 27.84, -25, maxd=1.0); fx(1462, 28.31, -24)
+# the cafe: Lemmings appears, the fight, Polka answers
+fx(1492, 25.78, -22); fx(773, 25.80, -21, maxd=1.5, fo=0.7); fx(2299, 25.80, -22)
+fx(2655, 26.47, -20, maxd=0.7); fx(1472, 26.47, -25)
+fx(2150, 26.91, -22); fx(1464, 26.91, -26)
+fx(1473, 27.38, -23); fx(2654, 27.40, -25, maxd=0.6)
+fx(1340, 27.84, -22, maxd=1.0); fx(2303, 27.82, -22, maxd=0.9)
+fx(1685, 28.31, -25, maxd=0.8); fx(1462, 28.31, -24)
 # -- pocket: heartbeat, riser, then the drop
 fx(498, 28.70, -21, maxd=0.85, fo=0.3); fx(498, 29.60, -21, maxd=0.85, fo=0.3)
 fx(788, C, -22, maxd=4.6, fo=1.6); fx(790, C - 0.02, -25)
 fx(2782, C, -20, maxd=2.6, fo=1.4); boom(C - 0.005, level=-14.0)
 fx(1472, 30.96, -23); fx(2299, 30.96, -23); fx(1473, 31.44, -23); fx(2299, 31.44, -23)
-fx(3057, 31.89, -21, maxd=1.4, fo=0.6); fx(1021, 32.44, -24); fx(1031, 32.64, -25)
+fx(3057, 31.89, -21, maxd=1.4, fo=0.6); fx(1472, 32.44, -23); fx(773, 32.64, -22, maxd=1.0, fo=0.5)
 fx(778, 32.83, -20, maxd=2.4, fo=1.2); fx(565, 32.83, -22, maxd=1.4)
 # -- outro
 fx(358, 33.9, -36, align="start", maxd=3.3, fi=0.8, fo=0.8)
-fx(619, 36.95, -22, align="on", maxd=2.6, fo=1.3)
-fx(2299, tl.END_TITLE["stamp"], -23); fx(386, tl.END_TITLE["stamp"], -25)
+# official title card: glitches in over the skyline, static, lands on white
+fx(1457, 36.85, -28, align="start", maxd=0.6, fo=0.2); fx(1031, 37.12, -29); fx(1021, 37.42, -26)
+fx(619, 37.55, -22, align="on", maxd=1.75, fo=0.9); fx(2299, 37.55, -24)
 # -- voices from the show: Shagrua's battle cry, Misaki's laugh
 v = fade(butter(stem("raw_scream", 0.55, 1.30), 120, "high", 2), 0.02, 0.12); place(sfx, loud(v, -21.0), 13.87)
 v = fade(butter(stem("raw_laugh", 0.95, 3.40), 150, "high", 2), 0.03, 0.4); vv = np.stack([v, v], 1)
@@ -153,7 +162,7 @@ vv += np.stack([sig.fftconvolve(v, reverb_ir(1.6, 0.4, 5000)[:, c])[:len(v)] for
 place(sfx, loud(vv, -24.0), 23.40)
 
 # small duck of the music under the biggest hits so they read without getting louder
-for t_, d_, amt in ((5.86, 0.5, -2.5), (C, 0.6, -2.0), (15.6, 0.7, -2.0)):
+for t_, d_, amt in ((7.27, 0.5, -2.0), (C, 0.6, -2.0), (15.6, 0.7, -2.0)):
     i0, i1 = int(t_ * SR), int((t_ + d_) * SR); music[i0:i1] *= np.linspace(db(amt), 1.0, i1 - i0)[:, None]
 
 sfx *= db(-2.0)                                                   # effects bus trim: support the song, don't fight it

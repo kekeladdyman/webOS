@@ -14,7 +14,7 @@ Source for the 38s edit set to "Ain't No Mountain High Enough". Media is not sto
 
 `tl.py` is the timeline (shots, captions, lyric text); `render.py` draws frames; `audio_mix.py` builds the soundtrack.
 
-## Version 2 (current)
+## Version 2 and 3 (same script files; version 3 is current)
 `tl2.py` timeline · `r2core.py` engine (3D planes, cut-out mattes, styled text) · `render2.py` scenes · `audio2.py` soundtrack with effects ·
 `prep2.py` clip extraction + character mattes (rembg `isnet-anime`).
 Run: `python prep2.py` → `python audio2.py` → `python render2.py final` → mux `out/final2_video.mp4` + `out/mix2.wav`.
@@ -136,3 +136,51 @@ G outro = Polka speaks, "peaceful." big; end lockup with red hanko seal 屍神�
 - Run: python prep2.py ; python audio2.py ; python render2.py final ; mux out/final2_video.mp4 + out/mix2.wav. Debug frames: TS=1.0,9.4 OUT=out/x.jpg python dbg2.py
 - SFX balance: per-sound loudness target + peak cap (lv+10.5 dB) + bus trim -2 dB; verified RMS per section (sfx ~2-5 dB under music, equal at title/chorus).
 - Known design choices: ENOUGH (chorus) sits in FRONT lower third (Polka's head fills frame); "peaceful." is behind Polka via matte; END=39.3s.
+
+# ===================== V3 (user feedback 2026-11-18 #2) =====================
+User: "I see what you doing — just keep the ORIGINAL Dead Mount Death Play logo, and include the Lemmings fight with Corpse God in the café scenes."
+=> (1) replace my custom title + custom end lockup/seal with the OFFICIAL logo footage; (2) add the E05 bar (Clarissa's) fight vs Lemmings.
+## Official logo footage (E01)
+- EN logo build: 1368.0-1369.8 sketch eye closing on WHITE | 1370.0 black w/ white hair lines | ~1370.6 "DEAD" appears | ~1371.2 "DEATH" + skull art
+  | ~1372.0 full stacked logo "DEAD / MOUNT / DEATH PLAY" (black/white bars) holds to ~1373.3. (same build also E02 4:54-5:01, E12 2:56-3:03)
+- JP title card: 1293.0 dark blue typing "DEAD MOUNT.." | 1294.6 glitch burst | 1296.0 JP logo デッドマウント・デスプレイ on WHITE (with small EN name)
+  | 1297.5 glitching blue over skyline | 1299.0 blue logo over Shinjuku skyline | 1300.5 skyline only.
+## E05 café/bar fight vs Lemmings (dark scene; sheets/dark_e05a.jpg, dark_e05b.jpg; times mm:ss.s in ep05; OP = 2:50-4:20 skip; chibi cutaways skip)
+Setup: 0:40.5(7.9s) Misaki+Polka two-shot | 0:48.4,0:49.3 Polka pink EYE ECU ignite | 0:50.9-0:52.1 PURPLE ghost swirl (fast) + 0:52.1(3.8s) ghost mass
+ | 0:55.8 Polka profile pink eye
+Lemmings vs cops: 0:59.4 leap (m8) | 1:04.8 Lemmings hooded hand reach (m6) | 1:05.6 cloak sweep | 1:10.9 bandaged face w/ victim | 1:15.7 bandaged face CU
+ | 1:18.8(2.0s) Lemmings bandaged face ECU glowing ** | 1:30.8 arm strike (m8) | 1:31.6(1.0s) bandaged fist catches blow ** | 1:40.1 Lemmings from behind
+ | 1:42.1 Polka pink eyes (m8) | 1:53.2 Polka lunges reaching (m7), 1:53.6 hand, 1:54.1 open hand CU | 1:54.7(5s) Polka blue-lit profile gritting teeth, 2:00.6 CU
+ | 2:04.3 handcuffs | 2:05.3 fight (m10) | 2:07.8 purple skull flash (m24) | 2:08.9 purple spirits | 2:10.1 Polka eye
+ | 2:11.4(2.2s)+2:17.9(4s) Corpse God skull true form blue-white w/ Polka ** | 2:35.5-2:37.5 skeletal hand + blue runes/circles (fast)
+ | 2:44.8(5.5s) Polka casting, blue circle arrays, glowing eyes *** (best ~2:46.5-2:50.2)
+After OP (avoid 4:20-4:25: episode-title text): 4:28.5 blue circle + skeletal arm sweep (m14) | 4:32.1(3.8s) Polka reaching w/ blue circle + bone hand **
+ | 4:35.9 Polka pink eyes | 4:46.0 skeleton hanging from lamp | 4:52.2 Polka w/ pendant | 4:54.9 circles on walls | 4:56.4 Polka hand out pink eyes **
+ | 4:57.6(1.8s,m9) big BLUE CIRCLE burst *** | 4:59.2(1.4s) skeletal hand reaching ** | 5:00.7-5:06.5 bone blades vs Lemmings, rapid (m5-m12) **
+ | 5:07.9 Lemmings dodge | 5:08.6 bones sweeping (m10) ** | 5:09.4 bone blades | 5:14.6 Misaki shocked CU | 5:22.2 Lemmings bandaged grin CU *
+ | 5:23.4 Polka shouting pink eyes ** | 5:24.6 Misaki glasses ECU | 5:27.0 Misaki held by Lemmings | 5:33.7 Polka pink eyes CU
+ | 5:41.2(0.8s,m11) Lemmings hooded silhouette w/ PURPLE ghosts *** | 5:42.2 Polka pink eyes front ** | 6:06.1 Misaki glasses glint ECU | 6:07.1 fork
+ | 6:10.6(3.4s) Lemmings face w/ fork | 6:14.0 Misaki grin
+Finale spell: 6:26.2 blue circles | 6:28.8(2.0s) Polka pink eyes ECU *** | 6:29.9 purple vein flash (m19) | 6:31.1(2.1s) purple ghost mass ** | 6:32.5 teal streak
+ | 6:34.7(1.8s)+6:36.1 blue-white energy burst *** | 6:36.8(3.5s) MANY blue circles array *** | 6:41.0(2.0s,m13) furniture/debris flying blue ***
+ | 6:42.8-6:45 white energy burst / white-out *** | 6:45.7(3.2s) Polka standing in blue light ** | 6:48.4-6:51 bar wide, debris + giant skull forming ***
+ | 6:52.4(2.4s) giant SKULL face *** | 6:54.0(0.8s) skull RED EYES *** | 6:55.0(1.2s,m11) skeletal monster lunges *** | 6:56.2 Lemmings among bones
+## V3 logo timing (frame-accurate, E01)
+- EN build: hair-lines flicker 1369.97-1370.43 | "DEAD" 1370.47 | "MOUNT" (white) 1370.84 | "DEATH"+skull 1371.22 | FULL stacked logo 1371.47 -> holds to ~1373.9
+  -> output: DEAD@5.86, MOUNT@6.32, DEATH@6.78, FULL@7.27 hold to 8.22 (all on beats). No custom title text.
+- JP card: typing on dark blue 1292.2-1294.45 | glitch 1294.49-1294.70 | JP logo on WHITE clean 1294.70-1297.21 | static 1297.25-1297.46
+  | blue logo glitching over skyline 1297.50-1299.8 | skyline only 1299.96-1300.96 (then unrelated at 1301.0)
+  -> ending plays this REVERSED: skyline (with "peaceful.") -> logo glitches in -> static -> logo on white hold -> black.
+- E04 Lemmings reveal: 22:01.3 (1321.3s, 4.0s static) bandaged hooded face, blue — clean until credits start 22:07. Also 21:41.5 glowing eye in dark; 21:53.7 hooded.
+## V3 plan
+- B title = official EN build. End = official JP card reversed (replaces G2 + custom lockup + seal).
+- E-action 25.80-28.55 = café threat: Lemmings reveal -> strike -> grabs Misaki/grin -> Polka shouts -> Polka reaches -> blue circle burst.
+- Pocket P2 = Polka pink-eyes ECU (E05 6:28.8) instead of E12 half-skull. P1 twins hug stays.
+- Chorus 30.50-33.6 = café finale: energy burst -> circles array -> debris flying -> white burst -> giant skull -> red eyes -> skeletal monster lunge (final word).
+## V3 build state (delivered: out/DMDP_edit_v3_1080p60.mp4, MASTER alongside)
+- Same files as V2 (tl2.py / r2core.py / render2.py / audio2.py / prep2.py); V2 originals kept as *_v2.bak in scratchpad and in git history.
+- Title = scene_logo(): official EN build from E01 1370.48, steps auto-detected in the clip, mapped to beats 5.86/6.32/6.78/7.27, hold to 8.22. No glow/vignette/aberration on logo.
+- End = end_logo_frame(): E01 1295.9+ played backwards via END_MAP (skyline -> logo glitch-in 36.85 -> static 37.45 -> JP logo on white 37.55 -> fade 39.0-39.3).
+- Cafe fight: L1-L6 (25.80-28.55), P1/P2 pocket, F1-F6 chorus all from E04 end / E05 bar. Grades "bar"/"bar_hi" brighten the dark bar footage.
+- Only cafe matte that works: F6 (Polka in blue light) -> final chorus word split in two halves either side of his head, behind him.
+- Too dark to use even graded: E05 strike 1:30.8, skeletal lunge 6:55, Polka hand-out 4:56, bone hand 4:59.

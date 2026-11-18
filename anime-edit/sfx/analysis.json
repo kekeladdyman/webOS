@@ -1241,5 +1241,60 @@
 "cen": 4997,
 "pkamp": 0.21,
 "sr": 44100
+},
+"2150": {
+"title": "Impact of a blow",
+"dur": 0.59,
+"on": 0.11,
+"peak": 0.18,
+"end": 0.45,
+"lufs": -18.0,
+"cen": 0,
+"pkamp": 0.83,
+"sr": 44100
+},
+"2655": {
+"title": "Fast impact blow",
+"dur": 1.33,
+"on": 0.01,
+"peak": 0.15,
+"end": 0.61,
+"lufs": -14.0,
+"cen": 0,
+"pkamp": 0.66,
+"sr": 44100
+},
+"2159": {
+"title": "Meat hit sound",
+"dur": 1.03,
+"on": 0.11,
+"peak": 0.18,
+"end": 0.72,
+"lufs": -28.5,
+"cen": 0,
+"pkamp": 0.24,
+"sr": 44100
+},
+"2182": {
+"title": "Wood hard hit",
+"dur": 0.42,
+"on": 0.05,
+"peak": 0.05,
+"end": 0.19,
+"lufs": -20.4,
+"cen": 0,
+"pkamp": 0.8,
+"sr": 44100
+},
+"2654": {
+"title": "Cartoon blow impact",
+"dur": 1.41,
+"on": 0.0,
+"peak": 0.08,
+"end": 0.59,
+"lufs": -18.5,
+"cen": 0,
+"pkamp": 0.81,
+"sr": 44100
 }
 }
